@@ -31,7 +31,7 @@ classesdf = traindf[classes].fillna(-1)
 paths = traindf["Path"].tolist()
 
 # most seem to be 2320, 2828, but smaller for now
-Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths])
+Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths if path[:5] == 'train']])
 X_train = torch.from_numpy(Xdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
 
 y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))

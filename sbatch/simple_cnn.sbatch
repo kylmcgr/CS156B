@@ -32,4 +32,4 @@ module load cuda/10.2
 
 source /home/kmcgraw/venvs/cs156b/bin/activate
 
-python scripts/CNN_basic_alldata.py
+python /home/kmcgraw/CS156b/scripts/CNN_basic_alldata.py

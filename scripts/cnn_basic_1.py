@@ -20,9 +20,6 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
 train = "/groups/CS156b/data/student_labels/train.csv"
 traindf = pd.read_csv(train)
 
-test = "/groups/CS156b/data/student_labels/test_ids.csv"
-testdf = pd.read_csv(test)
-
 # nans as -1
 classesdf = traindf[classes].fillna(-1).iloc[:1000]
 
@@ -32,9 +29,9 @@ paths = traindf["Path"].iloc[:1000].tolist()
 Xdf = np.array([np.asarray(Image.open(prefix+path).resize((50, 50))) for path in paths])
 X_train = torch.from_numpy(Xdf.reshape((-1, 1, 50, 50)).astype('float32'))
 
-y_train = torch.from_numpy((classesdf+1).to_numpy().reshape((-1, 14, 1)).astype('float32'))
+y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
 train_dataset = TensorDataset(X_train, y_train)
-training_data_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
+training_data_loader = DataLoader(train_dataset, batch_size=256, shuffle=False)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -63,15 +60,10 @@ optimizer = optim.RMSprop(model.parameters())
 n_epochs = 10
 
 # store metrics
-training_accuracy_history = np.zeros([n_epochs, 1])
 training_loss_history = np.zeros([n_epochs, 1])
-validation_accuracy_history = np.zeros([n_epochs, 1])
-validation_loss_history = np.zeros([n_epochs, 1])
 
 for epoch in range(n_epochs):
     print(f'Epoch {epoch+1}/10:', end='')
-    train_total = 0
-    train_correct = 0
     # train
     model.train()
     for i, data in enumerate(training_data_loader):
@@ -84,17 +76,34 @@ for epoch in range(n_epochs):
         # backward pass
         loss.backward()
         optimizer.step()
-        # track training accuracy
-        _, predicted = torch.max(output.data, 1)
-        train_total += labels.size(0)
-        train_correct += (predicted == labels).sum().item()
         # track training loss
         training_loss_history[epoch] += loss.item()
+        break;
         # progress update after 180 batches (~1/10 epoch for batch size 32)
         if i % 180 == 0: print('.',end='')
     training_loss_history[epoch] /= len(training_data_loader)
-    training_accuracy_history[epoch] = train_correct / train_total
-    print(f'\n\tloss: {training_loss_history[epoch,0]:0.4f}, acc: {training_accuracy_history[epoch,0]:0.4f}',end='')
+    print(f'\n\tloss: {training_loss_history[epoch,0]:0.4f}',end='')
 
-# out.insert(0, 'Id', testdf['Id'])
-# out.to_csv("CS156b/zeros.csv", index=False)
+
+test = "/groups/CS156b/data/student_labels/test_ids.csv"
+testdf = pd.read_csv(test)
+
+testpaths = testdf["Path"].iloc[:10].tolist()
+Xtestdf = np.array([np.asarray(Image.open(prefix+path).resize((50, 50))) for path in testpaths])
+X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, 50, 50)).astype('float32'))
+
+test_dataset = TensorDataset(X_test)
+test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+out = []
+with torch.no_grad():
+    model.eval()
+    for i, data in enumerate(test_data_loader):
+        images = data[0]
+        # forward pass
+        output = model(images)
+        # find accuracy
+        out.append(output)
+
+out.insert(0, 'Id', testdf['Id'])
+out.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_1_10test.csv", index=False)

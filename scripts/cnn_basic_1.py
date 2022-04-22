@@ -35,7 +35,7 @@ y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
 train_dataset = TensorDataset(X_train, y_train)
 training_data_loader = DataLoader(train_dataset, batch_size=256, shuffle=False)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 model = nn.Sequential(
     nn.Conv2d(1, 8, kernel_size=(3,3)),

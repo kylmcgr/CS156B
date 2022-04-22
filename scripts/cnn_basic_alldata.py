@@ -19,7 +19,8 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
 
 imagex = 50
 imagey = 50
-
+batch_size = 256
+n_epochs = 10
 
 train = "/groups/CS156b/data/student_labels/train.csv"
 traindf = pd.read_csv(train)
@@ -30,14 +31,14 @@ classesdf = traindf[classes].fillna(-1)
 paths = traindf["Path"].tolist()
 
 # most seem to be 2320, 2828, but smaller for now
-Xdf = np.array([np.asarray(Image.open(prefix+path).resize((50, 50))) for path in paths])
-X_train = torch.from_numpy(Xdf.reshape((-1, 1, 50, 50)).astype('float32'))
+Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths])
+X_train = torch.from_numpy(Xdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
 
 y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
 train_dataset = TensorDataset(X_train, y_train)
-training_data_loader = DataLoader(train_dataset, batch_size=256, shuffle=False)
+training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0")
 
 model = nn.Sequential(
     nn.Conv2d(1, 8, kernel_size=(3,3)),
@@ -60,18 +61,16 @@ model = nn.Sequential(
 criterion = nn.MSELoss()
 optimizer = optim.RMSprop(model.parameters())
 
-# Train the model for 10 epochs, iterating on the data in batches
-n_epochs = 10
-
 # store metrics
 training_loss_history = np.zeros([n_epochs, 1])
 
 for epoch in range(n_epochs):
-    print(f'Epoch {epoch+1}/10:', end='')
+    print(f'Epoch {epoch+1}/{n_epoch}:', end='')
     # train
     model.train()
     for i, data in enumerate(training_data_loader):
         images, labels = data
+        inputs, labels = inputs.to(device), labels.to(device)
         optimizer.zero_grad()
         # forward pass
         output = model(images)
@@ -93,8 +92,8 @@ test = "/groups/CS156b/data/student_labels/test_ids.csv"
 testdf = pd.read_csv(test)
 
 testpaths = testdf["Path"].tolist()
-Xtestdf = np.array([np.asarray(Image.open(prefix+path).resize((50, 50))) for path in testpaths])
-X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, 50, 50)).astype('float32'))
+Xtestdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in testpaths])
+X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
 
 test_dataset = TensorDataset(X_test)
 test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
@@ -103,6 +102,7 @@ out = []
 with torch.no_grad():
     model.eval()
     for i, data in enumerate(test_data_loader):
+        data = data.to(device)
         images = data[0]
         # forward pass
         output = model(images)

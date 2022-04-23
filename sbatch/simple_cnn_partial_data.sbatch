@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=CNN_basic_alldata_DarthJarJar
+#SBATCH --job-name=cnn_basic_partial_data_DarthJarJar
 
 #SBATCH --output=/home/kmcgraw/%j.out
 #SBATCH --error=/home/kmcgraw/%j.err

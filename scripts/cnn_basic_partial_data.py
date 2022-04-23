@@ -20,7 +20,7 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
 train = "/groups/CS156b/data/student_labels/train.csv"
 traindf = pd.read_csv(train)
 
-numdata = 10000
+numdata = 1000
 # numtest = 10
 # nans as -1
 classesdf = traindf[classes].fillna(-1).iloc[:numdata]
@@ -111,4 +111,4 @@ with torch.no_grad():
 outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
 outdf.insert(0, 'Id', testdf['Id'].tolist())
 # outdf.insert(0, 'Id', testdf['Id'].iloc[:numtest].tolist())
-outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_1_10test.csv", index=False)
+outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_partial_data_1000train.csv", index=False)

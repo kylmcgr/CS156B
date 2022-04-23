@@ -20,7 +20,7 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
 train = "/groups/CS156b/data/student_labels/train.csv"
 traindf = pd.read_csv(train)
 
-numdata = 1000
+numdata = 10000
 # numtest = 10
 # nans as -1
 classesdf = traindf[classes].fillna(-1).iloc[:numdata]

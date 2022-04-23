@@ -28,13 +28,13 @@ traindf = pd.read_csv(train)
 # nans as -1
 classesdf = traindf[classes].fillna(-1)
 
-paths = traindf["Path"].tolist()
+paths = traindf["Path"].tolist()[:-1]
 
 # most seem to be 2320, 2828, but smaller for now
-Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths if path[:5] == 'train'])
+Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths])
 X_train = torch.from_numpy(Xdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
 
-y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
+y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32')[:-1])
 train_dataset = TensorDataset(X_train, y_train)
 training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 

@@ -81,7 +81,6 @@ for epoch in range(n_epochs):
         optimizer.step()
         # track training loss
         training_loss_history[epoch] += loss.item()
-        break;
         # progress update after 180 batches (~1/10 epoch for batch size 32)
         if i % 180 == 0: print('.',end='')
     training_loss_history[epoch] /= len(training_data_loader)

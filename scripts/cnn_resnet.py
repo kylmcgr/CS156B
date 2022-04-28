@@ -17,62 +17,55 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
 
+imagex = 50
+imagey = 50
+batch_size = 256
+n_epochs = 20
+
 train = "/groups/CS156b/data/student_labels/train.csv"
 traindf = pd.read_csv(train)
 
-numdata = 1000
-# numtest = 10
 # nans as -1
-classesdf = traindf[classes].fillna(-1).iloc[:numdata]
+classesdf = traindf[classes].fillna(-1)
 
-paths = traindf["Path"].iloc[:numdata].tolist()
+paths = traindf["Path"].tolist()[:-1]
 
 # most seem to be 2320, 2828, but smaller for now
-Xdf = np.array([np.asarray(Image.open(prefix+path).resize((50, 50))) for path in paths])
-X_train = torch.from_numpy(Xdf.reshape((-1, 1, 50, 50)).astype('float32'))
+Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths])
+X_train = torch.from_numpy(Xdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
 
-y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
+y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32')[:-1])
 train_dataset = TensorDataset(X_train, y_train)
-training_data_loader = DataLoader(train_dataset, batch_size=256, shuffle=False)
+training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0")
 
-model = nn.Sequential(
-    nn.Conv2d(1, 8, kernel_size=(3,3)),
-    nn.ReLU(),
-    nn.MaxPool2d(2),
-    nn.Dropout(p=0.5),
+model = models.resnet50(pretrained=True)
 
-    nn.Conv2d(8, 8, kernel_size=(3,3)),
-    nn.ReLU(),
-    nn.MaxPool2d(2),
-    nn.Dropout(p=0.5),
+for param in model.parameters():
+    param.requires_grad = False
 
-    nn.Flatten(),
-    nn.Linear(968, 64),
-    nn.ReLU(),
-    nn.Linear(64, 14)
-    # PyTorch implementation of cross-entropy loss includes softmax layer
-)
-
+model.fc = nn.Sequential(nn.Linear(2048, 512),
+                                 nn.ReLU(),
+                                 nn.Dropout(0.2),
+                                 nn.Linear(512, 14),
+                                 nn.LogSoftmax(dim=1))
 criterion = nn.MSELoss()
-optimizer = optim.RMSprop(model.parameters())
-
-# Train the model for 10 epochs, iterating on the data in batches
-n_epochs = 10
+optimizer = optim.Adam(model.fc.parameters(), lr=0.001)
 
 # store metrics
 training_loss_history = np.zeros([n_epochs, 1])
 
 for epoch in range(n_epochs):
-    print(f'Epoch {epoch+1}/10:', end='')
+    print(f'Epoch {epoch+1}/{n_epochs}:', end='')
     # train
     model.train()
     for i, data in enumerate(training_data_loader):
         images, labels = data
+        inputs, labels = inputs.to(device), labels.to(device)
         optimizer.zero_grad()
         # forward pass
-        output = model(images)
+        output = model.forward(images)
         # calculate categorical cross entropy loss
         loss = criterion(output, labels)
         # backward pass
@@ -89,25 +82,24 @@ for epoch in range(n_epochs):
 test = "/groups/CS156b/data/student_labels/test_ids.csv"
 testdf = pd.read_csv(test)
 
-# testpaths = testdf["Path"].iloc[:numtest].tolist()
 testpaths = testdf["Path"].tolist()
-Xtestdf = np.array([np.asarray(Image.open(prefix+path).resize((50, 50))) for path in testpaths])
-X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, 50, 50)).astype('float32'))
+Xtestdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in testpaths])
+X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
 
 test_dataset = TensorDataset(X_test)
 test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
-out = np.empty((0,len(classes)), int)
+out = []
 with torch.no_grad():
     model.eval()
     for i, data in enumerate(test_data_loader):
+        data = data.to(device)
         images = data[0]
         # forward pass
-        output = model(images).numpy()
+        output = model(images)
         # find accuracy
-        out = np.append(out, output, axis=0)
+        out.append(output)
 
 outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
 outdf.insert(0, 'Id', testdf['Id'].tolist())
-# outdf.insert(0, 'Id', testdf['Id'].iloc[:numtest].tolist())
-outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_partial_data_1000train.csv", index=False)
+outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_alldata_50x50.csv", index=False)

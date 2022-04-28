@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=CNN_basic_alldata_DarthJarJar
+#SBATCH --job-name=CNN_resnet_DarthJarJar
 
 #SBATCH --output=/home/kmcgraw/%j.out
 #SBATCH --error=/home/kmcgraw/%j.err
@@ -32,4 +32,4 @@ module load cuda/10.2
 
 source /home/kmcgraw/venv/bin/activate
 
-python /home/kmcgraw/CS156b/scripts/cnn_basic_alldata.py
+python /home/kmcgraw/CS156b/scripts/cnn_resnet.py

@@ -8,7 +8,7 @@
 #SBATCH -A CS156b
 
 # can set to 8 to 10 hours to start to test
-#SBATCH -t 10:00:00
+#SBATCH -t 16:00:00
 
 # change if we use multiple srun tasks
 #SBATCH --ntasks=1

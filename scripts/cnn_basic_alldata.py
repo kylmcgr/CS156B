@@ -20,7 +20,7 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
 imagex = 50
 imagey = 50
 batch_size = 256
-n_epochs = 10
+n_epochs = 20
 
 train = "/groups/CS156b/data/student_labels/train.csv"
 traindf = pd.read_csv(train)
@@ -65,7 +65,7 @@ optimizer = optim.RMSprop(model.parameters())
 training_loss_history = np.zeros([n_epochs, 1])
 
 for epoch in range(n_epochs):
-    print(f'Epoch {epoch+1}/{n_epoch}:', end='')
+    print(f'Epoch {epoch+1}/{n_epochs}:', end='')
     # train
     model.train()
     for i, data in enumerate(training_data_loader):
@@ -109,5 +109,6 @@ with torch.no_grad():
         # find accuracy
         out.append(output)
 
-out.insert(0, 'Id', testdf['Id'])
-out.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_1_10test.csv", index=False)
+outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
+outdf.insert(0, 'Id', testdf['Id'].tolist())
+outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_alldata_50x50.csv", index=False)

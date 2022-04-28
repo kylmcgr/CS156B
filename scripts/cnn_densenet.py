@@ -52,7 +52,9 @@ model.classifier = nn.Sequential(nn.Linear(2208, 512),
                                  nn.Linear(512, 14),
                                  nn.LogSoftmax(dim=1))
 criterion = nn.MSELoss()
-optimizer = optim.Adam(model.fc.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+model.to(device)
 
 # store metrics
 training_loss_history = np.zeros([n_epochs, 1])

@@ -58,6 +58,8 @@ model = nn.Sequential(
 criterion = nn.MSELoss()
 optimizer = optim.RMSprop(model.parameters())
 
+model.to(device)
+
 # Train the model for 10 epochs, iterating on the data in batches
 n_epochs = 10
 

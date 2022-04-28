@@ -54,6 +54,8 @@ model.fc = nn.Sequential(nn.Linear(2048, 512),
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.fc.parameters(), lr=0.001)
 
+model.to(device)
+
 # store metrics
 training_loss_history = np.zeros([n_epochs, 1])
 

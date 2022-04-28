@@ -61,6 +61,8 @@ model = nn.Sequential(
 criterion = nn.MSELoss()
 optimizer = optim.RMSprop(model.parameters())
 
+model.to(device)
+
 # store metrics
 training_loss_history = np.zeros([n_epochs, 1])
 

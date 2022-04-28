@@ -21,7 +21,7 @@ train = "/groups/CS156b/data/student_labels/train.csv"
 traindf = pd.read_csv(train)
 
 numdata = 1000
-# numtest = 10
+numtest = 10
 # nans as -1
 classesdf = traindf[classes].fillna(-1).iloc[:numdata]
 
@@ -70,6 +70,7 @@ for epoch in range(n_epochs):
     model.train()
     for i, data in enumerate(training_data_loader):
         images, labels = data
+        images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
         # forward pass
         output = model(images)
@@ -89,8 +90,8 @@ for epoch in range(n_epochs):
 test = "/groups/CS156b/data/student_labels/test_ids.csv"
 testdf = pd.read_csv(test)
 
-# testpaths = testdf["Path"].iloc[:numtest].tolist()
-testpaths = testdf["Path"].tolist()
+testpaths = testdf["Path"].iloc[:numtest].tolist()
+# testpaths = testdf["Path"].tolist()
 Xtestdf = np.array([np.asarray(Image.open(prefix+path).resize((50, 50))) for path in testpaths])
 X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, 50, 50)).astype('float32'))
 
@@ -108,6 +109,6 @@ with torch.no_grad():
         out = np.append(out, output, axis=0)
 
 outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
-outdf.insert(0, 'Id', testdf['Id'].tolist())
-# outdf.insert(0, 'Id', testdf['Id'].iloc[:numtest].tolist())
+# outdf.insert(0, 'Id', testdf['Id'].tolist())
+outdf.insert(0, 'Id', testdf['Id'].iloc[:numtest].tolist())
 outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_partial_data_1000train.csv", index=False)

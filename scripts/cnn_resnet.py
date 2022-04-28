@@ -62,7 +62,7 @@ for epoch in range(n_epochs):
     model.train()
     for i, data in enumerate(training_data_loader):
         images, labels = data
-        inputs, labels = inputs.to(device), labels.to(device)
+        images, labels = images.to(device), labels.to(device)
         optimizer.zero_grad()
         # forward pass
         output = model.forward(images)

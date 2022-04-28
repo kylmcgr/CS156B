@@ -40,13 +40,13 @@ training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=
 
 device = torch.device("cuda:0")
 
-model = models.resnet50(pretrained=True)
-model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3,bias=False)
+model = models.densenet161(pretrained=True)
+model.features.conv0 = nn.Conv2d(1, 96, kernel_size=7, stride=2, padding=3,bias=False)
 
 for param in model.parameters():
     param.requires_grad = False
 
-model.fc = nn.Sequential(nn.Linear(2048, 512),
+model.classifier = nn.Sequential(nn.Linear(2208, 512),
                                  nn.ReLU(),
                                  nn.Dropout(0.2),
                                  nn.Linear(512, 14),
@@ -102,4 +102,4 @@ with torch.no_grad():
 
 outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
 outdf.insert(0, 'Id', testdf['Id'].tolist())
-outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_resnet_50x50.csv", index=False)
+outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_densenet_50x50.csv", index=False)

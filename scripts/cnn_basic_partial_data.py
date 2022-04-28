@@ -102,7 +102,7 @@ out = np.empty((0,len(classes)), int)
 with torch.no_grad():
     model.eval()
     for i, data in enumerate(test_data_loader):
-        images = data[0]
+        images = data[0].to(device)
         # forward pass
         output = model(images).numpy()
         # find accuracy
@@ -111,4 +111,4 @@ with torch.no_grad():
 outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
 # outdf.insert(0, 'Id', testdf['Id'].tolist())
 outdf.insert(0, 'Id', testdf['Id'].iloc[:numtest].tolist())
-outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_partial_data_1000train.csv", index=False)
+outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_partial_data_test.csv", index=False)

@@ -17,7 +17,7 @@
 #SBATCH --cpus-per-task=1
 
 # bump this up if we start running out of memory
-#SBATCH --mem=64G
+#SBATCH --mem=128G
 
 # definitely want to use GPU acceleration of whatever library we do
 #SBATCH --gres=gpu:1

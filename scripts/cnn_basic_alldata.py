@@ -41,21 +41,31 @@ training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=
 device = torch.device("cuda:0")
 
 model = nn.Sequential(
-    nn.Conv2d(1, 8, kernel_size=(3,3)),
+    nn.Conv2d(1, 64, kernel_size=(3,3)),
     nn.ReLU(),
     nn.MaxPool2d(2),
     nn.Dropout(p=0.5),
 
-    nn.Conv2d(8, 8, kernel_size=(3,3)),
+    nn.Conv2d(64, 64, kernel_size=(3,3)),
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Dropout(p=0.5),
+
+    nn.Conv2d(128, 128, kernel_size=(3,3)),
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Dropout(p=0.5),
+
+    nn.Conv2d(128, 128, kernel_size=(3,3)),
     nn.ReLU(),
     nn.MaxPool2d(2),
     nn.Dropout(p=0.5),
 
     nn.Flatten(),
-    # nn.Linear(2592, 512),
-    # nn.ReLU(),
-    # nn.Dropout(0.2),
-    # nn.Linear(512, 64),
+    nn.Linear(48672, 512),
+    nn.ReLU(),
+    nn.Dropout(0.2),
+    nn.Linear(512, 64),
     nn.Linear(968, 64),
     nn.ReLU(),
     nn.Linear(64, 14)

@@ -28,8 +28,8 @@ classesdf = traindf[classes].fillna(-1).iloc[:numdata]
 paths = traindf["Path"].iloc[:numdata].tolist()
 
 # most seem to be 2320, 2828, but smaller for now
-Xdf = np.array([np.asarray(Image.open(prefix+path).resize((50, 50))) for path in paths])
-X_train = torch.from_numpy(Xdf.reshape((-1, 1, 50, 50)).astype('float32'))
+Xdf = np.array([np.asarray(Image.open(prefix+path).resize((320, 320))) for path in paths])
+X_train = torch.from_numpy(Xdf.reshape((-1, 1, 320, 320)).astype('float32'))
 
 y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
 train_dataset = TensorDataset(X_train, y_train)
@@ -94,8 +94,8 @@ testdf = pd.read_csv(test)
 
 testpaths = testdf["Path"].iloc[:numtest].tolist()
 # testpaths = testdf["Path"].tolist()
-Xtestdf = np.array([np.asarray(Image.open(prefix+path).resize((50, 50))) for path in testpaths])
-X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, 50, 50)).astype('float32'))
+Xtestdf = np.array([np.asarray(Image.open(prefix+path).resize((320, 320))) for path in testpaths])
+X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, 320, 320)).astype('float32'))
 
 test_dataset = TensorDataset(X_test)
 test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)

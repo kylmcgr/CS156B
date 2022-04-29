@@ -48,7 +48,7 @@ model = nn.Sequential(
     nn.MaxPool2d(2),
     nn.Dropout(p=0.5),
 
-    nn.Conv2d(128, 128, kernel_size=(3,3)),
+    nn.Conv2d(64, 128, kernel_size=(3,3)),
     nn.ReLU(),
     nn.MaxPool2d(2),
     nn.Dropout(p=0.5),
@@ -59,7 +59,13 @@ model = nn.Sequential(
     nn.Dropout(p=0.5),
 
     nn.Flatten(),
-    nn.Linear(968, 64),
+    nn.Linear(41472, 3456),
+    nn.ReLU(),
+    nn.Dropout(0.2),
+    nn.Linear(3456, 288),
+    nn.ReLU(),
+    nn.Dropout(0.2),
+    nn.Linear(288, 64),
     nn.ReLU(),
     nn.Linear(64, 14)
     # PyTorch implementation of cross-entropy loss includes softmax layer

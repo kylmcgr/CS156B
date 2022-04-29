@@ -98,7 +98,7 @@ with torch.no_grad():
     for i, data in enumerate(test_data_loader):
         images = data[0].to(device)
         # forward pass
-        output = model(images).numpy()
+        output = model(images).cpu().numpy()
         # find accuracy
         out = np.append(out, output, axis=0)
 

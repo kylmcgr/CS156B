@@ -17,8 +17,8 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
 
-imagex = 80
-imagey = 80
+imagex = 50
+imagey = 50
 batch_size = 256
 n_epochs = 20
 
@@ -52,10 +52,11 @@ model = nn.Sequential(
     nn.Dropout(p=0.5),
 
     nn.Flatten(),
-    nn.Linear(2592, 512),
-    nn.ReLU(),
-    nn.Dropout(0.2),
-    nn.Linear(512, 64),
+    # nn.Linear(2592, 512),
+    # nn.ReLU(),
+    # nn.Dropout(0.2),
+    # nn.Linear(512, 64),
+    nn.Linear(968, 64),
     nn.ReLU(),
     nn.Linear(64, 14)
     # PyTorch implementation of cross-entropy loss includes softmax layer
@@ -114,4 +115,4 @@ with torch.no_grad():
 
 outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
 outdf.insert(0, 'Id', testdf['Id'].tolist())
-outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_alldata_80x80.csv", index=False)
+outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_alldata_50x50.csv", index=False)

@@ -33,7 +33,7 @@ X_train = torch.from_numpy(Xdf.reshape((-1, 1, 320, 320)).astype('float32'))
 
 y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
 train_dataset = TensorDataset(X_train, y_train)
-training_data_loader = DataLoader(train_dataset, batch_size=256, shuffle=False)
+training_data_loader = DataLoader(train_dataset, batch_size=64, shuffle=False)
 
 device = torch.device("cuda:0")
 

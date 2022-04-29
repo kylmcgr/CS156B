@@ -19,7 +19,7 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
 
 imagex = 50
 imagey = 50
-batch_size = 256
+batch_size = 64
 n_epochs = 20
 
 train = "/groups/CS156b/data/student_labels/train.csv"

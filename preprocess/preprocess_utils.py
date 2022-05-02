@@ -109,6 +109,7 @@ def train_model(traindf, classesdf, model, output_path):
     paths = traindf["Path"].tolist()
 
     # most seem to be 2320, 2828, but smaller for now
+    print("Getting data...")
     Xdf = np.array(
         [
             np.asarray(Image.open(DATA_PATH + path).resize((320, 320)))
@@ -127,8 +128,6 @@ def train_model(traindf, classesdf, model, output_path):
     )
 
     device = torch.device("cuda:0")
-
-    model = model
 
     criterion = nn.MSELoss()
     optimizer = optim.RMSprop(model.parameters())
@@ -171,7 +170,7 @@ def train_model(traindf, classesdf, model, output_path):
     f.close()
 
 
-def imputation_test(model, output_path, fill_strategy, fill_value=None):
+def imputation_test(model, output_path):
     print("Testing imputation.")
     traindf = pd.read_csv(TRAIN_PATH)
     classesdf = traindf[PATHOLOGIES]
@@ -183,7 +182,7 @@ def imputation_test(model, output_path, fill_strategy, fill_value=None):
         "0": SimpleImputer(
             missing_values=np.nan, strategy="constant", fill_value=0
         ),
-        "Mean": SimpleImputer(
+        "mean": SimpleImputer(
             missing_values=np.nan,
             strategy="mean",
         ),
@@ -193,7 +192,7 @@ def imputation_test(model, output_path, fill_strategy, fill_value=None):
         print(f"Trying Imputation with: {name}")
 
         imputer.fit_transform(classesdf)
-        train_model(model, traindf, classesdf, output_path)
+        train_model(model, traindf, classesdf, f"{output_path}_{name}.csv")
 
 
 def sobel_edge_detection(img_name):

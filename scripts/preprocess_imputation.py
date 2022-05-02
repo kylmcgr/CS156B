@@ -14,10 +14,4 @@ cnn_densenet = gen_cnn_densenet()
 
 # run_model(cnn_basic, OUTPUT_PATH + "cnn_basic.csv")
 # run_model(cnn_resnet, OUTPUT_PATH + "cnn_resnet.csv")
-imputation_test(
-    cnn_basic, OUTPUT_PATH + "cnn_basic_impute_neg1.csv", "constant", -1
-)
-imputation_test(
-    cnn_basic, OUTPUT_PATH + "cnn_basic_impute_0.csv", "constant", 0
-)
-imputation_test(cnn_basic, OUTPUT_PATH + "cnn_basic_impute_mean.csv", "mean")
+imputation_test(cnn_basic, OUTPUT_PATH + "cnn_basic_impute")

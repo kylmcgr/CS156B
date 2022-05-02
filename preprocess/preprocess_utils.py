@@ -110,7 +110,7 @@ def imputation_test(model, na_fill, output_path):
 
     classesdf = traindf[PATHOLOGIES]
 
-    imputer = SimpleImputer(missing_value=np.nan, strategy=na_fill)
+    imputer = SimpleImputer(missing_values=np.nan, strategy=na_fill)
     imputer.fit_transform(classesdf)
 
     paths = traindf["Path"].tolist()

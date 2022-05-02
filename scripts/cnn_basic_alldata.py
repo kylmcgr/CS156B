@@ -70,7 +70,8 @@ model = nn.Sequential(
     # nn.Dropout(0.2),
     # nn.Linear(288, 64),
     nn.ReLU(),
-    nn.Linear(128, 14)
+    nn.Linear(128, 14),
+    nn.Tanh()
 
     # nn.Flatten(),
     # nn.Linear(48672, 512),

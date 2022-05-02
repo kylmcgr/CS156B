@@ -67,7 +67,8 @@ model = nn.Sequential(
     nn.Dropout(0.2),
     nn.Linear(288, 64),
     nn.ReLU(),
-    nn.Linear(64, 14)
+    nn.Linear(64, 14),
+    nn.Tanh()
     # PyTorch implementation of cross-entropy loss includes softmax layer
 )
 

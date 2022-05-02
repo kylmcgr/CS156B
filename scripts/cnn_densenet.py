@@ -50,7 +50,8 @@ model.classifier = nn.Sequential(nn.Linear(2208, 512),
                                  nn.ReLU(),
                                  nn.Dropout(0.2),
                                  nn.Linear(512, 14),
-                                 nn.LogSoftmax(dim=1))
+                                 nn.LogSoftmax(dim=1),
+                                 nn.Tanh())
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 

@@ -103,29 +103,8 @@ def gen_cnn_densenet():
     return model
 
 
-def train_model(model, traindf, classesdf, output_path):
+def train_model(model, training_data_loader, output_path):
     f = open(output_path, "w")
-
-    paths = traindf["Path"].tolist()
-
-    # most seem to be 2320, 2828, but smaller for now
-    print("Getting data...")
-    Xdf = np.array(
-        [
-            np.asarray(Image.open(DATA_PATH + path).resize((320, 320)))
-            for path in paths
-        ]
-    )
-    X_train = torch.from_numpy(
-        Xdf.reshape((-1, 1, 320, 320)).astype("float32")
-    )
-
-    y_train = torch.from_numpy((classesdf + 1).to_numpy().astype("float32"))
-
-    train_dataset = TensorDataset(X_train, y_train)
-    training_data_loader = DataLoader(
-        train_dataset, batch_size=64, shuffle=False
-    )
 
     device = torch.device("cuda:0")
 
@@ -175,6 +154,27 @@ def imputation_test(model, output_path):
     traindf = pd.read_csv(TRAIN_PATH)
     classesdf = traindf[PATHOLOGIES]
 
+    paths = traindf["Path"].tolist()
+
+    # most seem to be 2320, 2828, but smaller for now
+    print("Getting data...")
+    Xdf = np.array(
+        [
+            np.asarray(Image.open(DATA_PATH + path).resize((320, 320)))
+            for path in paths
+        ]
+    )
+    X_train = torch.from_numpy(
+        Xdf.reshape((-1, 1, 320, 320)).astype("float32")
+    )
+
+    y_train = torch.from_numpy((classesdf + 1).to_numpy().astype("float32"))
+
+    train_dataset = TensorDataset(X_train, y_train)
+    training_data_loader = DataLoader(
+        train_dataset, batch_size=64, shuffle=False
+    )
+
     impute_mehtods = {
         "-1": SimpleImputer(
             missing_values=np.nan, strategy="constant", fill_value=-1
@@ -192,7 +192,7 @@ def imputation_test(model, output_path):
         print(f"Trying Imputation with: {name}")
 
         imputer.fit_transform(classesdf)
-        train_model(model, traindf, classesdf, f"{output_path}_{name}.csv")
+        train_model(model, training_data_loader, f"{output_path}_{name}.csv")
 
 
 def sobel_edge_detection(img_name):

@@ -188,7 +188,7 @@ def imputation_test(model, output_path):
         ),
     }
 
-    for name, imputer in impute_mehtods:
+    for name, imputer in impute_mehtods.items():
         print(f"Trying Imputation with: {name}")
 
         imputer.fit_transform(classesdf)

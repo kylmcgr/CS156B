@@ -152,8 +152,8 @@ def train_model(model, training_data_loader, output_path):
 def imputation_test(model, output_path):
     print("Testing imputation.")
     traindf = pd.read_csv(TRAIN_PATH)
+    traindf = traindf.iloc[:1000]
     classesdf = traindf[PATHOLOGIES]
-
     paths = traindf["Path"].tolist()
 
     # most seem to be 2320, 2828, but smaller for now

@@ -103,14 +103,16 @@ def gen_cnn_densenet():
     return model
 
 
-def imputation_test(model, na_fill, output_path):
+def imputation_test(model, output_path, fill_strategy, fill_value=None):
     f = open(output_path, "w")
 
     traindf = pd.read_csv(TRAIN_PATH)
 
     classesdf = traindf[PATHOLOGIES]
 
-    imputer = SimpleImputer(missing_values=np.nan, strategy=na_fill)
+    imputer = SimpleImputer(
+        missing_values=np.nan, strategy=fill_strategy, fill_value=fill_value
+    )
     imputer.fit_transform(classesdf)
 
     paths = traindf["Path"].tolist()

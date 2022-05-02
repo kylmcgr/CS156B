@@ -103,17 +103,8 @@ def gen_cnn_densenet():
     return model
 
 
-def imputation_test(model, output_path, fill_strategy, fill_value=None):
+def train_model(traindf, classesdf, model, output_path):
     f = open(output_path, "w")
-
-    traindf = pd.read_csv(TRAIN_PATH)
-
-    classesdf = traindf[PATHOLOGIES]
-
-    imputer = SimpleImputer(
-        missing_values=np.nan, strategy=fill_strategy, fill_value=fill_value
-    )
-    imputer.fit_transform(classesdf)
 
     paths = traindf["Path"].tolist()
 
@@ -180,6 +171,31 @@ def imputation_test(model, output_path, fill_strategy, fill_value=None):
     f.close()
 
 
+def imputation_test(model, output_path, fill_strategy, fill_value=None):
+    print("Testing imputation.")
+    traindf = pd.read_csv(TRAIN_PATH)
+    classesdf = traindf[PATHOLOGIES]
+
+    impute_mehtods = {
+        "-1": SimpleImputer(
+            missing_values=np.nan, strategy="constant", fill_value=-1
+        ),
+        "0": SimpleImputer(
+            missing_values=np.nan, strategy="constant", fill_value=0
+        ),
+        "Mean": SimpleImputer(
+            missing_values=np.nan,
+            strategy="mean",
+        ),
+    }
+
+    for name, imputer in impute_mehtods:
+        print(f"Trying Imputation with: {name}")
+
+        imputer.fit_transform(classesdf)
+        train_model(model, traindf, classesdf, output_path)
+
+
 def sobel_edge_detection(img_name):
     file_name = os.path.join(os.path.dirname(__file__), img_name)
 
@@ -230,7 +246,6 @@ def edge_detection_test(model, type, output_path):
     f = open(output_path, "w")
 
     traindf = pd.read_csv(TRAIN_PATH)
-
     classesdf = traindf[PATHOLOGIES]
 
     imputer = SimpleImputer(missing_value=np.nan, strategy=-1)

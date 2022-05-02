@@ -103,7 +103,7 @@ def gen_cnn_densenet():
     return model
 
 
-def train_model(traindf, classesdf, model, output_path):
+def train_model(model, traindf, classesdf, output_path):
     f = open(output_path, "w")
 
     paths = traindf["Path"].tolist()

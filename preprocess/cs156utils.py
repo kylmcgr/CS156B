@@ -1,8 +1,7 @@
 import cv2
-import numpy as np
-import os
-import pandas as pd
 import torch
+import pandas as pd
+import numpy as np
 import torch.nn as nn
 
 from torch import optim
@@ -103,9 +102,148 @@ def gen_cnn_densenet():
     return model
 
 
-def imputation_test(model, na_fill, output_path):
-    f = open(output_path, "w")
+def run_model(model, output_path):
+    traindf = pd.read_csv(TRAIN_PATH)
 
+    classesdf = traindf[PATHOLOGIES]
+
+    imputer = SimpleImputer(missing_value=np.nan, strategy=0)
+    imputer.fit_transform(classesdf)
+
+    paths = traindf["Path"].tolist()
+
+    # most seem to be 2320, 2828, but smaller for now
+    Xdf = np.array(
+        [
+            np.asarray(Image.open(DATA_PATH + path).resize((320, 320)))
+            for path in paths
+        ]
+    )
+    X_train = torch.from_numpy(
+        Xdf.reshape((-1, 1, 320, 320)).astype("float32")
+    )
+
+    y_train = torch.from_numpy((classesdf + 1).to_numpy().astype("float32"))
+
+    train_dataset = TensorDataset(X_train, y_train)
+    training_data_loader = DataLoader(
+        train_dataset, batch_size=64, shuffle=False
+    )
+
+    device = torch.device("cuda:0")
+
+    model = model
+
+    criterion = nn.MSELoss()
+    optimizer = optim.RMSprop(model.parameters())
+
+    model.to(device)
+
+    # Train the model for 10 epochs, iterating on the data in batches
+    n_epochs = 10
+
+    # store metrics
+    training_loss_history = np.zeros([n_epochs, 1])
+
+    for epoch in range(n_epochs):
+        print(f"Epoch {epoch+1}/10:", end="")
+        # train
+        model.train()
+        for i, data in enumerate(training_data_loader):
+            images, labels = data
+            images, labels = images.to(device), labels.to(device)
+            optimizer.zero_grad()
+            # forward pass
+            output = model(images)
+            # calculate categorical cross entropy loss
+            loss = criterion(output, labels)
+            # backward pass
+            loss.backward()
+            optimizer.step()
+            # track training loss
+            training_loss_history[epoch] += loss.item()
+            # progress update after 180 batches (~1/10 epoch for batch size 32)
+            if i % 180 == 0:
+                print(".", end="")
+        training_loss_history[epoch] /= len(training_data_loader)
+        print(f"\n\tloss: {training_loss_history[epoch,0]:0.4f}", end="")
+
+    testdf = pd.read_csv(TEST_PATH)
+    testpaths = testdf["Path"].tolist()
+    Xtestdf = np.array(
+        [
+            np.asarray(Image.open(DATA_PATH + path).resize((320, 320)))
+            for path in testpaths
+        ]
+    )
+    X_test = torch.from_numpy(
+        Xtestdf.reshape((-1, 1, 320, 320)).astype("float32")
+    )
+
+    test_dataset = TensorDataset(X_test)
+    test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+    out = np.empty((0, len(PATHOLOGIES)), int)
+    with torch.no_grad():
+        model.eval()
+        for i, data in enumerate(test_data_loader):
+            images = data[0].to(device)
+            # forward pass
+            output = model(images).cpu().numpy()
+            # find accuracy
+            out = np.append(out, output, axis=0)
+
+    outdf = pd.DataFrame(data=out, columns=traindf.columns[6:])
+
+    outdf.insert(0, "Id", testdf["Id"].tolist())
+    outdf.to_csv(
+        output_path,
+        index=False,
+    )
+
+
+def edge_detection(img):
+    # Read the original image
+    img = cv2.imread(img)
+    # Display original image
+    cv2.imshow("Original", img)
+    cv2.waitKey(0)
+
+    # Convert to graycsale
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # Blur the image for better edge detection
+    img_blur = cv2.GaussianBlur(img_gray, (3, 3), 0)
+
+    # Sobel Edge Detection
+    sobelx = cv2.Sobel(
+        src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=0, ksize=5
+    )  # Sobel Edge Detection on the X axis
+    sobely = cv2.Sobel(
+        src=img_blur, ddepth=cv2.CV_64F, dx=0, dy=1, ksize=5
+    )  # Sobel Edge Detection on the Y axis
+    sobelxy = cv2.Sobel(
+        src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5
+    )  # Combined X and Y Sobel Edge Detection
+    # Display Sobel Edge Detection Images
+    cv2.imshow("Sobel X", sobelx)
+    cv2.waitKey(0)
+    cv2.imshow("Sobel Y", sobely)
+    cv2.waitKey(0)
+    cv2.imshow("Sobel X Y using Sobel() function", sobelxy)
+    cv2.waitKey(0)
+
+    # Canny Edge Detection
+    edges = cv2.Canny(
+        image=img_blur, threshold1=100, threshold2=200
+    )  # Canny Edge Detection
+    # Display Canny Edge Detection Image
+    cv2.imshow("Canny Edge Detection", edges)
+    cv2.waitKey(0)
+
+    cv2.destroyAllWindows()
+
+
+def na_fill_test(model, output_path, na_fill):
     traindf = pd.read_csv(TRAIN_PATH)
 
     classesdf = traindf[PATHOLOGIES]
@@ -150,8 +288,6 @@ def imputation_test(model, na_fill, output_path):
 
     for epoch in range(n_epochs):
         print(f"Epoch {epoch+1}/10:", end="")
-        f.write(f"Epoch {epoch+1}/10:")
-
         # train
         model.train()
         for i, data in enumerate(training_data_loader):
@@ -172,134 +308,11 @@ def imputation_test(model, na_fill, output_path):
                 print(".", end="")
         training_loss_history[epoch] /= len(training_data_loader)
         print(f"\n\tloss: {training_loss_history[epoch,0]:0.4f}", end="")
-        f.write(f"\n\tloss: {training_loss_history[epoch,0]:0.4f}")
 
-    # write training_loss (or just get training loss over epochs)
-    f.close()
-
-
-def sobel_edge_detection(img_name):
-    file_name = os.path.join(os.path.dirname(__file__), img_name)
-
-    # Read the original image
-    img = cv2.imread(file_name, -1)
-
-    # Display original image
-    # cv2.imshow("Original", img)
-
-    # Convert to graycsale
-    # img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # Blur the image for better edge detection
-    img_blur = cv2.GaussianBlur(img, (3, 3), 0)
-
-    # Sobel Edge Detection
-    sobelxy = cv2.Sobel(
-        src=img_blur, ddepth=cv2.CV_64F, dx=1, dy=1, ksize=5
-    )  # Combined X and Y Sobel Edge Detection
-    # cv2.imshow("Sobel X Y using Sobel() function", sobelxy)
-
-    return sobelxy
-
-
-def canny_edge_detection(img_name):
-    file_name = os.path.join(os.path.dirname(__file__), img_name)
-
-    # Read the original image
-    img = cv2.imread(file_name, -1)
-    # Display original image
-    # cv2.imshow("Original", img)
-
-    # Convert to graycsale
-    # img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # Blur the image for better edge detection
-    img_blur = cv2.GaussianBlur(img, (3, 3), 0)
-
-    # Canny Edge Detection
-    edges = cv2.Canny(
-        image=img_blur, threshold1=100, threshold2=200
-    )  # Canny Edge Detection
-    # Display Canny Edge Detection Image
-    # cv2.imshow("Canny Edge Detection", edges)
-
-    return edges
-
-
-def edge_detection_test(model, type, output_path):
-    f = open(output_path, "w")
-
-    traindf = pd.read_csv(TRAIN_PATH)
-
-    classesdf = traindf[PATHOLOGIES]
-
-    imputer = SimpleImputer(missing_value=np.nan, strategy=-1)
-    imputer.fit_transform(classesdf)
-
-    paths = traindf["Path"].tolist()
-
-    # most seem to be 2320, 2828, but smaller for now
-    # TODO: transform image
-    Xdf = np.array(
-        [
-            np.asarray(Image.open(DATA_PATH + path).resize((320, 320)))
-            for path in paths
-        ]
-    )
-    X_train = torch.from_numpy(
-        Xdf.reshape((-1, 1, 320, 320)).astype("float32")
-    )
-
-    y_train = torch.from_numpy((classesdf + 1).to_numpy().astype("float32"))
-
-    train_dataset = TensorDataset(X_train, y_train)
-    training_data_loader = DataLoader(
-        train_dataset, batch_size=64, shuffle=False
-    )
-
-    device = torch.device("cuda:0")
-
-    model = model
-
-    criterion = nn.MSELoss()
-    optimizer = optim.RMSprop(model.parameters())
-
-    model.to(device)
-
-    # Train the model for 10 epochs, iterating on the data in batches
-    n_epochs = 10
-
-    # store metrics
-    training_loss_history = np.zeros([n_epochs, 1])
-
-    for epoch in range(n_epochs):
-        print(f"Epoch {epoch+1}/10:", end="")
-        f.write(f"Epoch {epoch+1}/10:")
-
-        # train
-        model.train()
-        for i, data in enumerate(training_data_loader):
-            images, labels = data
-            images, labels = images.to(device), labels.to(device)
-            optimizer.zero_grad()
-            # forward pass
-            output = model(images)
-            # calculate categorical cross entropy loss
-            loss = criterion(output, labels)
-            # backward pass
-            loss.backward()
-            optimizer.step()
-            # track training loss
-            training_loss_history[epoch] += loss.item()
-            # progress update after 180 batches (~1/10 epoch for batch size 32)
-            if i % 180 == 0:
-                print(".", end="")
-        training_loss_history[epoch] /= len(training_data_loader)
-        print(f"\n\tloss: {training_loss_history[epoch,0]:0.4f}", end="")
-        f.write(f"\n\tloss: {training_loss_history[epoch,0]:0.4f}")
-
-    # write training_loss (or just get training loss over epochs)
-    f.close()
+    # write training_loss
 
 
 if __name__ == "__main__":
-    sobel_edge_detection("img1.jpg")
-    canny_edge_detection("img1.jpg")
+    print("start\n")
+    edge_detection("/img1.jpg")
+    print("end\n")

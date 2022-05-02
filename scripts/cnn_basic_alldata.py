@@ -17,8 +17,8 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
 
-imagex = 50
-imagey = 50
+imagex = 320
+imagey = 320
 batch_size = 64
 n_epochs = 20
 
@@ -51,7 +51,7 @@ model = nn.Sequential(
     nn.MaxPool2d(2),
     nn.Dropout(p=0.5),
 
-    nn.Conv2d(128, 128, kernel_size=(3,3)),
+    nn.Conv2d(64, 128, kernel_size=(3,3)),
     nn.ReLU(),
     nn.MaxPool2d(2),
     nn.Dropout(p=0.5),
@@ -62,15 +62,15 @@ model = nn.Sequential(
     nn.Dropout(p=0.5),
 
     nn.Flatten(),
-    nn.Linear(41472, 3456),
+    # nn.Linear(41472, 3456),
+    # nn.ReLU(),
+    # nn.Dropout(0.2),
+    # nn.Linear(3456, 288),
+    # nn.ReLU(),
+    # nn.Dropout(0.2),
+    # nn.Linear(288, 64),
     nn.ReLU(),
-    nn.Dropout(0.2),
-    nn.Linear(3456, 288),
-    nn.ReLU(),
-    nn.Dropout(0.2),
-    nn.Linear(288, 64),
-    nn.ReLU(),
-    nn.Linear(64, 14)
+    nn.Linear(128, 14)
 
     # nn.Flatten(),
     # nn.Linear(48672, 512),
@@ -136,4 +136,4 @@ with torch.no_grad():
 
 outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
 outdf.insert(0, 'Id', testdf['Id'].tolist())
-outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_alldata_50x50.csv", index=False)
+outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_basic_alldata_320x320.csv", index=False)

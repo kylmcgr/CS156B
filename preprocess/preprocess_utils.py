@@ -149,26 +149,30 @@ def train_model(model, training_data_loader, output_path):
     f.close()
 
 
+def get_xdf():
+    pass
+
+
 def imputation_test(model, output_path):
     print("Testing imputation.")
     traindf = pd.read_csv(TRAIN_PATH)
     traindf = traindf.iloc[:1000]
     classesdf = traindf[PATHOLOGIES]
-    paths = traindf["Path"].tolist()
+    paths = traindf["Path"].values
 
     # most seem to be 2320, 2828, but smaller for now
     print("Getting data...")
     Xdf = np.array(
         [
-            np.asarray(Image.open(DATA_PATH + path).resize((320, 320)))
-            for path in paths
+            np.asarray(Image.open(DATA_PATH + path["Path"]).resize((320, 320)))
+            for path in paths.iterrows()
         ]
     )
     X_train = torch.from_numpy(
         Xdf.reshape((-1, 1, 320, 320)).astype("float32")
     )
 
-    y_train = torch.from_numpy((classesdf + 1).to_numpy().astype("float32"))
+    y_train = torch.from_numpy((classesdf + 1).values.astype("float32"))
 
     train_dataset = TensorDataset(X_train, y_train)
     training_data_loader = DataLoader(

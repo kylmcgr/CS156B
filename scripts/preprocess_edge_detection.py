@@ -144,7 +144,7 @@ def edge_detection_test(model, criterion, optimizer, output_path):
     print("Testing edge detection.")
 
     traindf = pd.read_csv(TRAIN_PATH)
-    # traindf = traindf.iloc[:1000]
+    traindf = traindf.iloc[:1000]
     classesdf = traindf[PATHOLOGIES]
     paths = traindf.loc[traindf["Path"].str.startswith("train/"), "Path"]
 
@@ -157,9 +157,7 @@ def edge_detection_test(model, criterion, optimizer, output_path):
         original.append(
             np.asarray(Image.open(DATA_PATH + path).resize((320, 320)))
         )
-        edges.append(
-            np.asarray(canny_edge_detection(DATA_PATH + path))
-        )    
+        edges.append(np.asarray(canny_edge_detection(DATA_PATH + path)))
 
     for name, images in {"original": original, "edges": edges}:
         f = open(f"{output_path}_{name}.csv", "w")

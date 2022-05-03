@@ -135,7 +135,7 @@ def imputation_test(model, output_path):
         f = open(f"{output_path}_{name}.csv", "w")
 
         print(f"Trying Imputation with: {name}")
-        imputer.fit_transform(classesdf)
+        classesdf = imputer.fit_transform(classesdf)
         f.write(f"classesdf: {classesdf}\n")
 
         y_train = torch.from_numpy((classesdf + 1).values.astype("float32"))

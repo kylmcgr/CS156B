@@ -166,9 +166,11 @@ def imputation_test(model, output_path):
             for i, data in enumerate(training_data_loader):
                 images, labels = data
                 images, labels = images.to(device), labels.to(device)
+                f.write(f"img: {images}; label: {labels}\n")
                 optimizer.zero_grad()
                 # forward pass
                 output = model(images)
+                f.write(f"output: {output};\n")
                 # calculate categorical cross entropy loss
                 loss = criterion(output, labels)
                 # backward pass

@@ -138,7 +138,7 @@ def imputation_test(model, output_path):
         classesdf = imputer.fit_transform(classesdf)
         f.write(f"classesdf: {classesdf}\n")
 
-        y_train = torch.from_numpy((classesdf + 1).values.astype("float32"))
+        y_train = torch.from_numpy((classesdf + 1).astype("float32"))
         f.write(f"ytrain: {y_train}\n")
 
         train_dataset = TensorDataset(X_train, y_train)

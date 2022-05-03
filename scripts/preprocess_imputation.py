@@ -135,10 +135,10 @@ def imputation_test(model, output_path):
         f = open(f"{output_path}_{name}.csv", "w")
 
         print(f"Trying Imputation with: {name}")
-        classesdf = imputer.fit_transform(classesdf)
-        f.write(f"classesdf: {classesdf}\n")
+        imputed_data = imputer.fit_transform(classesdf)
+        f.write(f"classesdf: {imputed_data}\n")
 
-        y_train = torch.from_numpy((classesdf + 1).astype("float32"))
+        y_train = torch.from_numpy((imputed_data + 1).astype("float32"))
         f.write(f"ytrain: {y_train}\n")
 
         train_dataset = TensorDataset(X_train, y_train)
@@ -168,11 +168,9 @@ def imputation_test(model, output_path):
             for i, data in enumerate(training_data_loader):
                 images, labels = data
                 images, labels = images.to(device), labels.to(device)
-                f.write(f"label: {labels}\n")
                 optimizer.zero_grad()
                 # forward pass
                 output = model(images)
-                f.write(f"output: {output};\n")
                 # calculate categorical cross entropy loss
                 loss = criterion(output, labels)
                 # backward pass
@@ -182,7 +180,6 @@ def imputation_test(model, output_path):
                 training_loss_history[epoch] += loss.item()
                 # progress update after 180 batches (~1/10 epoch for batch
                 # size 32)
-                f.write(f"{i}: {loss.item()}\n")
                 if i % 180 == 0:
                     print(".", end="")
             training_loss_history[epoch] /= len(training_data_loader)

@@ -136,10 +136,10 @@ def imputation_test(model, output_path):
 
         print(f"Trying Imputation with: {name}")
         imputed_data = imputer.fit_transform(classesdf)
-        f.write(f"classesdf: {imputed_data}\n")
+        # f.write(f"classesdf: {imputed_data}\n")
 
         y_train = torch.from_numpy((imputed_data + 1).astype("float32"))
-        f.write(f"ytrain: {y_train}\n")
+        # f.write(f"ytrain: {y_train}\n")
 
         train_dataset = TensorDataset(X_train, y_train)
         training_data_loader = DataLoader(
@@ -171,7 +171,7 @@ def imputation_test(model, output_path):
                 optimizer.zero_grad()
                 # forward pass
                 output = model(images)
-                f.write(f"output: {output}")
+                # f.write(f"output: {output}")
 
                 # calculate categorical cross entropy loss
                 loss = criterion(output, labels)
@@ -193,9 +193,11 @@ def imputation_test(model, output_path):
 
 
 cnn_basic = gen_cnn_basic()
-# cnn_resnet = gen_cnn_resnet()
-# cnn_densenet = gen_cnn_densenet()
+cnn_resnet = gen_cnn_resnet()
+cnn_densenet = gen_cnn_densenet()
 
 # run_model(cnn_basic, OUTPUT_PATH + "cnn_basic.csv")
 # run_model(cnn_resnet, OUTPUT_PATH + "cnn_resnet.csv")
 imputation_test(cnn_basic, OUTPUT_PATH + "cnn_basic_impute")
+imputation_test(cnn_resnet, OUTPUT_PATH + "cnn_resnet_impute")
+imputation_test(cnn_densenet, OUTPUT_PATH + "cnn_densenet_impute")

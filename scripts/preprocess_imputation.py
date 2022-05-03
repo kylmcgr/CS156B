@@ -132,16 +132,19 @@ def imputation_test(model, output_path):
     }
 
     for name, imputer in impute_mehtods.items():
+        f = open(f"{output_path}_{name}.csv", "w")
+
         print(f"Trying Imputation with: {name}")
         imputer.fit_transform(classesdf)
+        f.write(f"classesdf: {classesdf}\n")
+
         y_train = torch.from_numpy((classesdf + 1).values.astype("float32"))
+        f.write(f"ytrain: {y_train}\n")
 
         train_dataset = TensorDataset(X_train, y_train)
         training_data_loader = DataLoader(
             train_dataset, batch_size=64, shuffle=False
         )
-
-        f = open(f"{output_path}_{name}.csv", "w")
 
         device = torch.device("cuda:0")
 
@@ -165,7 +168,7 @@ def imputation_test(model, output_path):
             for i, data in enumerate(training_data_loader):
                 images, labels = data
                 images, labels = images.to(device), labels.to(device)
-                f.write(f"img: {images}; label: {labels}\n")
+                f.write(f"label: {labels}\n")
                 optimizer.zero_grad()
                 # forward pass
                 output = model(images)

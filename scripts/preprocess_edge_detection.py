@@ -162,7 +162,7 @@ def edge_detection_test(model, criterion, optimizer, output_path):
     original = np.array(original)
     edges = np.array(edges)
 
-    for name, images in {"original": original, "edges": edges}:
+    for name, images in {"original": original, "edges": edges}.items():
         f = open(f"{output_path}_{name}.csv", "w")
         X_train = torch.from_numpy(
             images.reshape((-1, 1, 320, 320)).astype("float32")

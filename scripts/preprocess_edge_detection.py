@@ -150,8 +150,8 @@ def edge_detection_test(model, criterion, optimizer, output_path):
 
     # most seem to be 2320, 2828, but smaller for now
     print("Getting data...")
-    original = np.array()
-    edges = np.array()
+    original = np.array([])
+    edges = np.array([])
 
     for _i, path in paths.iteritems():
         original.append(

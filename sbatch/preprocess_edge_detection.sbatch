@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=preprocess_imputation_DarthJarJar
+#SBATCH --job-name=preprocess_edge_detection_DarthJarJar
 
 #SBATCH --output=/home/mcgee/%j.out
 #SBATCH --error=/home/mcgee/%j.err

@@ -118,7 +118,7 @@ def gen_cnn_densenet():
 def imputation_test(model, criterion, optimizer, output_path):
     print("Testing imputation.")
     traindf = pd.read_csv(TRAIN_PATH)
-    traindf = traindf.iloc[:1000]
+    # traindf = traindf.iloc[:1000]
     classesdf = traindf[PATHOLOGIES]
     paths = traindf["Path"].tolist()
 

@@ -1,4 +1,4 @@
-from preprocess.preprocess_utils import (
+from preprocess_utils import (
     gen_cnn_basic,
     gen_cnn_densenet,
     gen_cnn_resnet,

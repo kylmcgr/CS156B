@@ -120,7 +120,7 @@ def imputation_test(model, criterion, optimizer, output_path):
     traindf = pd.read_csv(TRAIN_PATH)
     # traindf = traindf.iloc[:1000]
     classesdf = traindf[PATHOLOGIES]
-    paths = traindf.loc[traindf["Path"][:6] == "train/", "Path"]
+    paths = traindf.loc[traindf["Path"].str.startswith("train/"), "Path"]
 
     # most seem to be 2320, 2828, but smaller for now
     print("Getting data...")

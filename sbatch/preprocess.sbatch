@@ -30,6 +30,6 @@
 
 module load cuda/10.2
 
-source /home/mcgee/venv/bin/activate
+source /home/kmcgraw/venv/bin/activate
 
 python /home/mcgee/CS156b/scripts/preprocess_imputation.py

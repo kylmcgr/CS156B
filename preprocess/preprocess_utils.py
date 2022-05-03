@@ -334,5 +334,5 @@ def edge_detection_test(model, type, output_path):
 
 
 if __name__ == "__main__":
-    sobel_edge_detection("img1.jpg")
+    # sobel_edge_detection("img1.jpg")
     canny_edge_detection("img1.jpg")

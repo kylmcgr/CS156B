@@ -62,15 +62,15 @@ model = nn.Sequential(
     nn.Dropout(p=0.5),
 
     nn.Flatten(),
-    # nn.Linear(41472, 3456),
-    # nn.ReLU(),
-    # nn.Dropout(0.2),
-    # nn.Linear(3456, 288),
-    # nn.ReLU(),
-    # nn.Dropout(0.2),
-    # nn.Linear(288, 64),
+    nn.Linear(41472, 3456),
     nn.ReLU(),
-    nn.Linear(128, 14),
+    nn.Dropout(0.2),
+    nn.Linear(3456, 288),
+    nn.ReLU(),
+    nn.Dropout(0.2),
+    nn.Linear(288, 64),
+    nn.ReLU(),
+    nn.Linear(64, 14),
     nn.Tanh()
 
     # nn.Flatten(),

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=resnet_320x320_DarthJarJar
+#SBATCH --job-name=resnet_50x50_DarthJarJar
 
 #SBATCH --output=/home/kmcgraw/%j.out
 #SBATCH --error=/home/kmcgraw/%j.err

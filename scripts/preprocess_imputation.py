@@ -163,8 +163,8 @@ def imputation_test(model, criterion, optimizer, output_path):
 
         model.to(device)
 
-        # Train the model for 20 epochs, iterating on the data in batches
-        n_epochs = 20
+        # Train the model for n epochs, iterating on the data in batches
+        n_epochs = 10
 
         # store metrics
         training_loss_history = np.zeros([n_epochs, 1])

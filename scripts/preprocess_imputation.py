@@ -120,14 +120,14 @@ def imputation_test(model, criterion, optimizer, output_path):
     traindf = pd.read_csv(TRAIN_PATH)
     # traindf = traindf.iloc[:1000]
     classesdf = traindf[PATHOLOGIES]
-    paths = traindf["Path"].tolist()
+    paths = traindf.loc[traindf["Path"][:6] == "train/", "Path"]
 
     # most seem to be 2320, 2828, but smaller for now
     print("Getting data...")
     Xdf = np.array(
         [
             np.asarray(Image.open(DATA_PATH + path).resize((320, 320)))
-            for path in paths
+            for _i, path in paths.iteritems()
         ]
     )
     X_train = torch.from_numpy(

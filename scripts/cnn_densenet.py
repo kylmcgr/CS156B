@@ -43,8 +43,8 @@ device = torch.device("cuda:0")
 model = models.densenet161(pretrained=True)
 model.features.conv0 = nn.Conv2d(1, 96, kernel_size=7, stride=2, padding=3,bias=False)
 
-for param in model.parameters():
-    param.requires_grad = False
+# for param in model.parameters():
+#     param.requires_grad = False
 
 model.classifier = nn.Sequential(nn.Linear(2208, 512),
                                  nn.ReLU(),

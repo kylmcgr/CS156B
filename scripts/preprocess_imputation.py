@@ -102,52 +102,6 @@ def gen_cnn_densenet():
     return model
 
 
-def train_model(model, training_data_loader, output_path):
-    f = open(output_path, "w")
-
-    device = torch.device("cuda:0")
-
-    criterion = nn.MSELoss()
-    optimizer = optim.RMSprop(model.parameters())
-
-    model.to(device)
-
-    # Train the model for 10 epochs, iterating on the data in batches
-    n_epochs = 10
-
-    # store metrics
-    training_loss_history = np.zeros([n_epochs, 1])
-
-    for epoch in range(n_epochs):
-        print(f"Epoch {epoch+1}/10:", end="")
-        f.write(f"Epoch {epoch+1}/10:")
-
-        # train
-        model.train()
-        for i, data in enumerate(training_data_loader):
-            images, labels = data
-            images, labels = images.to(device), labels.to(device)
-            optimizer.zero_grad()
-            # forward pass
-            output = model(images)
-            # calculate categorical cross entropy loss
-            loss = criterion(output, labels)
-            # backward pass
-            loss.backward()
-            optimizer.step()
-            # track training loss
-            training_loss_history[epoch] += loss.item()
-            # progress update after 180 batches (~1/10 epoch for batch size 32)
-            if i % 180 == 0:
-                print(".", end="")
-        training_loss_history[epoch] /= len(training_data_loader)
-        print(f"\n\tloss: {training_loss_history[epoch,0]:0.4f}", end="")
-        f.write(f"\n\tloss: {training_loss_history[epoch,0]:0.4f}")
-
-    # write training_loss (or just get training loss over epochs)
-    f.close()
-
-
 def imputation_test(model, output_path):
     print("Testing imputation.")
     traindf = pd.read_csv(TRAIN_PATH)
@@ -181,22 +135,63 @@ def imputation_test(model, output_path):
         "0": SimpleImputer(
             missing_values=np.nan, strategy="constant", fill_value=0
         ),
-        "mean": SimpleImputer(
-            missing_values=np.nan,
-            strategy="mean",
-        ),
+        "mean": SimpleImputer(missing_values=np.nan, strategy="mean"),
     }
 
     for name, imputer in impute_mehtods.items():
         print(f"Trying Imputation with: {name}")
 
         imputer.fit_transform(classesdf)
-        train_model(model, training_data_loader, f"{output_path}_{name}.csv")
+        f = open(f"{output_path}_{name}.csv", "w")
+
+        device = torch.device("cuda:0")
+
+        criterion = nn.MSELoss()
+        optimizer = optim.RMSprop(model.parameters())
+
+        model.to(device)
+
+        # Train the model for 10 epochs, iterating on the data in batches
+        n_epochs = 10
+
+        # store metrics
+        training_loss_history = np.zeros([n_epochs, 1])
+
+        for epoch in range(n_epochs):
+            print(f"Epoch {epoch+1}/10:", end="")
+            f.write(f"Epoch {epoch+1}/10:")
+
+            # train
+            model.train()
+            for i, data in enumerate(training_data_loader):
+                images, labels = data
+                images, labels = images.to(device), labels.to(device)
+                optimizer.zero_grad()
+                # forward pass
+                output = model(images)
+                # calculate categorical cross entropy loss
+                loss = criterion(output, labels)
+                # backward pass
+                loss.backward()
+                optimizer.step()
+                # track training loss
+                training_loss_history[epoch] += loss.item()
+                # progress update after 180 batches (~1/10 epoch for batch
+                # size 32)
+                f.write(f"{i}: {loss.item()}\n")
+                if i % 180 == 0:
+                    print(".", end="")
+            training_loss_history[epoch] /= len(training_data_loader)
+            print(f"\n\tloss: {training_loss_history[epoch,0]:0.4f}", end="")
+            f.write(f"\n\tloss: {training_loss_history[epoch,0]:0.4f}\n")
+
+        # write training_loss (or just get training loss over epochs)
+        f.close()
 
 
 cnn_basic = gen_cnn_basic()
-cnn_resnet = gen_cnn_resnet()
-cnn_densenet = gen_cnn_densenet()
+# cnn_resnet = gen_cnn_resnet()
+# cnn_densenet = gen_cnn_densenet()
 
 # run_model(cnn_basic, OUTPUT_PATH + "cnn_basic.csv")
 # run_model(cnn_resnet, OUTPUT_PATH + "cnn_resnet.csv")

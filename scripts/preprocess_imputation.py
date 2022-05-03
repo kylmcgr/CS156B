@@ -102,7 +102,7 @@ def gen_cnn_densenet():
     return model
 
 
-def imputation_test(model, output_path):
+def imputation_test(model, criterion, optimizer, output_path):
     print("Testing imputation.")
     traindf = pd.read_csv(TRAIN_PATH)
     traindf = traindf.iloc[:1000]
@@ -148,20 +148,17 @@ def imputation_test(model, output_path):
 
         device = torch.device("cuda:0")
 
-        criterion = nn.MSELoss()
-        optimizer = optim.RMSprop(model.parameters())
-
         model.to(device)
 
-        # Train the model for 10 epochs, iterating on the data in batches
-        n_epochs = 10
+        # Train the model for 20 epochs, iterating on the data in batches
+        n_epochs = 20
 
         # store metrics
         training_loss_history = np.zeros([n_epochs, 1])
 
         for epoch in range(n_epochs):
-            print(f"Epoch {epoch+1}/10:", end="")
-            f.write(f"Epoch {epoch+1}/10:")
+            print(f"Epoch {epoch+1}/{n_epochs}:", end="")
+            f.write(f"Epoch {epoch+1}/{n_epochs}:")
 
             # train
             model.train()
@@ -192,12 +189,14 @@ def imputation_test(model, output_path):
         f.close()
 
 
-cnn_basic = gen_cnn_basic()
-cnn_resnet = gen_cnn_resnet()
-cnn_densenet = gen_cnn_densenet()
+# (model, criterion, optimizer)
+(model, criterion, optimizer) = gen_cnn_basic()
+imputation_test(model, criterion, optimizer, OUTPUT_PATH + "cnn_basic_impute")
 
-# run_model(cnn_basic, OUTPUT_PATH + "cnn_basic.csv")
-# run_model(cnn_resnet, OUTPUT_PATH + "cnn_resnet.csv")
-imputation_test(cnn_basic, OUTPUT_PATH + "cnn_basic_impute")
-imputation_test(cnn_resnet, OUTPUT_PATH + "cnn_resnet_impute")
-imputation_test(cnn_densenet, OUTPUT_PATH + "cnn_densenet_impute")
+(model, criterion, optimizer) = gen_cnn_resnet()
+imputation_test(model, criterion, optimizer, OUTPUT_PATH + "cnn_resnet_impute")
+
+(model, criterion, optimizer) = gen_cnn_densenet()
+imputation_test(
+    model, criterion, optimizer, OUTPUT_PATH + "cnn_densenet_impute"
+)

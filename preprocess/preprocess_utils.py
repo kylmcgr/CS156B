@@ -33,7 +33,7 @@ TEST_PATH = "/groups/CS156b/data/student_labels/test_ids.csv"
 
 
 def gen_cnn_basic():
-    return nn.Sequential(
+    model = nn.Sequential(
         nn.Conv2d(1, 64, kernel_size=(3, 3)),
         nn.ReLU(),
         nn.MaxPool2d(2),
@@ -59,9 +59,13 @@ def gen_cnn_basic():
         nn.Dropout(0.2),
         nn.Linear(288, 64),
         nn.ReLU(),
-        nn.Linear(64, 14)
-        # PyTorch implementation of cross-entropy loss includes softmax layer
+        nn.Linear(64, 14),
+        nn.Tanh(),
     )
+    criterion = nn.MSELoss()
+    optimizer = optim.RMSprop(model.parameters())
+
+    return (model, criterion, optimizer)
 
 
 def gen_cnn_resnet():
@@ -79,8 +83,13 @@ def gen_cnn_resnet():
         nn.Dropout(0.2),
         nn.Linear(512, 14),
         nn.LogSoftmax(dim=1),
+        nn.Tanh(),
     )
-    return model
+
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.fc.parameters(), lr=0.001)
+
+    return (model, criterion, optimizer)
 
 
 def gen_cnn_densenet():
@@ -98,9 +107,13 @@ def gen_cnn_densenet():
         nn.Dropout(0.2),
         nn.Linear(512, 14),
         nn.LogSoftmax(dim=1),
+        nn.Tanh(),
     )
 
-    return model
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+    return (model, criterion, optimizer)
 
 
 def train_model(model, training_data_loader, output_path):

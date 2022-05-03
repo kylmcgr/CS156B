@@ -121,13 +121,6 @@ def imputation_test(model, output_path):
         Xdf.reshape((-1, 1, 320, 320)).astype("float32")
     )
 
-    y_train = torch.from_numpy((classesdf + 1).values.astype("float32"))
-
-    train_dataset = TensorDataset(X_train, y_train)
-    training_data_loader = DataLoader(
-        train_dataset, batch_size=64, shuffle=False
-    )
-
     impute_mehtods = {
         "-1": SimpleImputer(
             missing_values=np.nan, strategy="constant", fill_value=-1
@@ -140,8 +133,14 @@ def imputation_test(model, output_path):
 
     for name, imputer in impute_mehtods.items():
         print(f"Trying Imputation with: {name}")
-
         imputer.fit_transform(classesdf)
+        y_train = torch.from_numpy((classesdf + 1).values.astype("float32"))
+
+        train_dataset = TensorDataset(X_train, y_train)
+        training_data_loader = DataLoader(
+            train_dataset, batch_size=64, shuffle=False
+        )
+
         f = open(f"{output_path}_{name}.csv", "w")
 
         device = torch.device("cuda:0")

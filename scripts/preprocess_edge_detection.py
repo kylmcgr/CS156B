@@ -150,14 +150,17 @@ def edge_detection_test(model, criterion, optimizer, output_path):
 
     # most seem to be 2320, 2828, but smaller for now
     print("Getting data...")
-    original = np.array([])
-    edges = np.array([])
+    original = []
+    edges = []
 
     for _i, path in paths.iteritems():
         original.append(
             np.asarray(Image.open(DATA_PATH + path).resize((320, 320)))
         )
         edges.append(np.asarray(canny_edge_detection(DATA_PATH + path)))
+
+    original = np.array(original)
+    edges = np.array(edges)
 
     for name, images in {"original": original, "edges": edges}:
         f = open(f"{output_path}_{name}.csv", "w")

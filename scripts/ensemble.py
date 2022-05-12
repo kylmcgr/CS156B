@@ -93,7 +93,7 @@ if __name__ == "__main__":
             'Pleural Other', 'Fracture', 'Support Devices']
 	filename = "/home/kmcgraw/CS156b/predictions/emseble_test.csv"
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	x_train, y_train = load_traindata(partialData=True, imagex=50, imagey=50)
+	X_train, y_train = load_traindata(partialData=True, imagex=50, imagey=50)
 	train_dataset = TensorDataset(X_train, y_train)
 	training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 	model = get_densenet(device)

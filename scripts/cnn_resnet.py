@@ -17,16 +17,16 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
 
-imagex = 50
-imagey = 50
-batch_size = 64
+imagex = 320
+imagey = 320
+batch_size = 256
 n_epochs = 20
 
 train = "/groups/CS156b/data/student_labels/train.csv"
 traindf = pd.read_csv(train)
 
 # nans as -1
-classesdf = traindf[classes].fillna(-1)
+classesdf = traindf[classes].fillna(0)
 
 paths = traindf["Path"].tolist()[:-1]
 
@@ -105,4 +105,4 @@ with torch.no_grad():
 
 outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
 outdf.insert(0, 'Id', testdf['Id'].tolist())
-outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_resnet_50x50.csv", index=False)
+outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_resnet_320x320.csv", index=False)

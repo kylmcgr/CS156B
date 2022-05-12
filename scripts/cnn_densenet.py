@@ -17,8 +17,8 @@ classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
 
-imagex = 50
-imagey = 50
+imagex = 320
+imagey = 320
 batch_size = 64
 n_epochs = 20
 
@@ -26,7 +26,7 @@ train = "/groups/CS156b/data/student_labels/train.csv"
 traindf = pd.read_csv(train)
 
 # nans as -1
-classesdf = traindf[classes].fillna(-1)
+classesdf = traindf[classes].fillna(0)
 
 paths = traindf["Path"].tolist()[:-1]
 
@@ -44,7 +44,7 @@ model = models.densenet161(pretrained=True)
 model.features.conv0 = nn.Conv2d(1, 96, kernel_size=7, stride=2, padding=3,bias=False)
 
 for param in model.parameters():
-    param.requires_grad = True
+    param.requires_grad = False
 
 model.classifier = nn.Sequential(nn.Linear(2208, 512),
                                  nn.ReLU(),
@@ -105,4 +105,4 @@ with torch.no_grad():
 
 outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
 outdf.insert(0, 'Id', testdf['Id'].tolist())
-outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_densenet_50x50.csv", index=False)
+outdf.to_csv("/home/kmcgraw/CS156b/predictions/cnn_densenet_320x320.csv", index=False)

@@ -23,7 +23,7 @@ traindf = pd.read_csv(train)
 numdata = 1000
 numtest = 10
 # nans as -1
-classesdf = traindf[classes].fillna(-1).iloc[:numdata]
+classesdf = traindf[classes].fillna(0).iloc[:numdata]
 
 paths = traindf["Path"].iloc[:numdata].tolist()
 

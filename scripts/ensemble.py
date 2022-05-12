@@ -11,7 +11,7 @@ from torchvision import datasets, transforms, models
 import torch.nn as nn
 from torch.utils.data import Dataset, TensorDataset, DataLoader
 
-def load_traindata(partialData=False, numdata=1000, imagex=320, imagey=320, batch_size=64):
+def load_traindata(partialData=False, numdata=1000, imagex=320, imagey=320):
 	prefix = "/groups/CS156b/data/"
 	train = "/groups/CS156b/data/student_labels/train.csv"
 	traindf = pd.read_csv(train)
@@ -92,6 +92,7 @@ if __name__ == "__main__":
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
 	filename = "/home/kmcgraw/CS156b/predictions/emseble_test.csv"
+	batch_size = 64
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	X_train, y_train = load_traindata(partialData=True, imagex=50, imagey=50)
 	train_dataset = TensorDataset(X_train, y_train)

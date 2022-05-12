@@ -23,9 +23,7 @@ def load_traindata(partialData=False, numdata=1000, imagex=320, imagey=320, batc
 	Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths])
 	X_train = torch.from_numpy(Xdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
 	y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
-	train_dataset = TensorDataset(X_train, y_train)
-	training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
-	return training_data_loader
+	return x_train, y_train
 
 def load_testdata(partialData=False, numtest=10, imagex=320, imagey=320):
 	prefix = "/groups/CS156b/data/"
@@ -36,8 +34,7 @@ def load_testdata(partialData=False, numtest=10, imagex=320, imagey=320):
 		testpaths = testdf["Path"].iloc[:numtest].tolist()
 	Xtestdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in testpaths])
 	X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
-	test_dataset = TensorDataset(X_test)
-	test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+	return X_test
 
 def get_densenet(device, updateWeights=False):
 	model = models.densenet161(pretrained=True)
@@ -96,10 +93,14 @@ if __name__ == "__main__":
             'Pleural Other', 'Fracture', 'Support Devices']
 	filename = "/home/kmcgraw/CS156b/predictions/emseble_test.csv"
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	training_data_loader = load_traindata(partialData=True)
+	x_train, y_train = load_traindata(partialData=True, imagex=50, imagey=50)
+	train_dataset = TensorDataset(X_train, y_train)
+	training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 	model = get_densenet(device)
-	trained_model = fit_model(model, training_data_loader, device, n_epochs=20)
-	test_data_loader = load_testdata(partialData=True)
+	trained_model = fit_model(model, training_data_loader, device, n_epochs=1)
+	X_test = load_testdata(partialData=True, imagex=50, imagey=50)
+	test_dataset = TensorDataset(X_test)
+	test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 	test_model(classes, test_data_loader, partialData=True)
 
 	# for i in range(len(classes)):

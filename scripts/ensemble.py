@@ -11,7 +11,7 @@ from torchvision import datasets, transforms, models
 import torch.nn as nn
 from torch.utils.data import Dataset, TensorDataset, DataLoader
 
-def load_traindata(partialData=False, numImages=1000, imagex=320, imagey=320, batch_size=64):
+def load_traindata(partialData=False, numdata=1000, imagex=320, imagey=320, batch_size=64):
 	prefix = "/groups/CS156b/data/"
 	train = "/groups/CS156b/data/student_labels/train.csv"
 	traindf = pd.read_csv(train)
@@ -27,7 +27,7 @@ def load_traindata(partialData=False, numImages=1000, imagex=320, imagey=320, ba
 	training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 	return training_data_loader
 
-def load_testdata(partialData=False, numImages=10, imagex=320, imagey=320):
+def load_testdata(partialData=False, numtest=10, imagex=320, imagey=320):
 	prefix = "/groups/CS156b/data/"
 	test = "/groups/CS156b/data/student_labels/test_ids.csv"
 	testdf = pd.read_csv(test)
@@ -74,7 +74,7 @@ def fit_model(model, training_data_loader, device, n_epochs=20):
 	    print(f'\n\tloss: {training_loss_history[epoch,0]:0.4f}',end='')
 	return model
 
-def test_model(classes, test_data_loader, filename, partialData=False, numImages=10):
+def test_model(classes, test_data_loader, filename, partialData=False, numtest=10):
 	out = np.empty((0,len(classes)), int)
 	with torch.no_grad():
 	    model.eval()

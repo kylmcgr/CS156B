@@ -23,7 +23,7 @@ def load_traindata(partialData=False, numdata=1000, imagex=320, imagey=320, batc
 	Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths])
 	X_train = torch.from_numpy(Xdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
 	y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
-	return x_train, y_train
+	return X_train, y_train
 
 def load_testdata(partialData=False, numtest=10, imagex=320, imagey=320):
 	prefix = "/groups/CS156b/data/"

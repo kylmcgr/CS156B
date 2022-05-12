@@ -102,6 +102,6 @@ if __name__ == "__main__":
 	X_test = load_testdata(partialData=True, imagex=50, imagey=50)
 	test_dataset = TensorDataset(X_test)
 	test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
-	test_model(classes, test_data_loader, partialData=True)
+	test_model(classes, test_data_loader, filename, partialData=True)
 
 	# for i in range(len(classes)):

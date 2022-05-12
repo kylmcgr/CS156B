@@ -50,12 +50,12 @@ def get_densenet(device, updateWeights=False):
 	                                 nn.Linear(512, 14),
 	                                 nn.LogSoftmax(dim=1),
 	                                 nn.Tanh())
-	criterion = nn.MSELoss()
-	optimizer = optim.Adam(model.parameters(), lr=0.001)
-	model.to(device)
 	return model
 
 def fit_model(model, training_data_loader, device, n_epochs=20):
+	criterion = nn.MSELoss()
+	optimizer = optim.Adam(model.parameters(), lr=0.001)
+	model.to(device)
 	training_loss_history = np.zeros([n_epochs, 1])
 	for epoch in range(n_epochs):
 	    print(f'Epoch {epoch+1}/{n_epochs}:', end='')

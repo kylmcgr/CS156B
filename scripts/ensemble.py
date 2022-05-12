@@ -95,7 +95,7 @@ if __name__ == "__main__":
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
 	filename = "/home/kmcgraw/CS156b/predictions/emseble_test.csv"
-	device = torch.device("cuda:0" if torch.cuda.is_available(﻿) else "cpu")
+	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	training_data_loader = load_traindata(partialData=True)
 	model = get_densenet(device)
 	trained_model = fit_model(model, training_data_loader, device, n_epochs=20)

@@ -34,7 +34,10 @@ def load_testdata(partialData=False, numtest=10, imagex=320, imagey=320):
 		testpaths = testdf["Path"].iloc[:numtest].tolist()
 	Xtestdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in testpaths])
 	X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
-	return X_test
+	ids = testdf['Id'].tolist()
+	if partialData:
+		ids = testdf['Id'].iloc[:numtest].tolist()
+	return X_test, ids
 
 def get_densenet(device, updateWeights=False):
 	model = models.densenet161(pretrained=True)
@@ -71,7 +74,7 @@ def fit_model(model, training_data_loader, device, n_epochs=20):
 	    print(f'\n\tloss: {training_loss_history[epoch,0]:0.4f}',end='')
 	return model
 
-def test_model(classes, test_data_loader, filename, partialData=False, numtest=10):
+def test_model(classes, test_data_loader, filename, ids):
 	out = np.empty((0,len(classes)), int)
 	with torch.no_grad():
 	    model.eval()
@@ -80,9 +83,6 @@ def test_model(classes, test_data_loader, filename, partialData=False, numtest=1
 	        output = model(images).cpu().numpy()
 	        out = np.append(out, output, axis=0)
 	outdf = pd.DataFrame(data = out, columns=classes)
-	ids = testdf['Id'].tolist()
-	if partialData:
-		ids = testdf['Id'].iloc[:numtest].tolist()
 	outdf.insert(0, 'Id', ids)
 	outdf.to_csv(filename, index=False)
 
@@ -99,9 +99,9 @@ if __name__ == "__main__":
 	training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 	model = get_densenet(device)
 	trained_model = fit_model(model, training_data_loader, device, n_epochs=1)
-	X_test = load_testdata(partialData=True, imagex=50, imagey=50)
+	X_test, ids = load_testdata(partialData=True, imagex=50, imagey=50)
 	test_dataset = TensorDataset(X_test)
 	test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
-	test_model(classes, test_data_loader, filename, partialData=True)
+	test_model(classes, test_data_loader, filename, ids)
 
 	# for i in range(len(classes)):

@@ -96,9 +96,10 @@ if __name__ == "__main__":
             'Pleural Other', 'Fracture', 'Support Devices']
 	filename = "/home/kmcgraw/CS156b/predictions/emseble_test.csv"
 	device = torch.device("cuda:0")
-	training_data_loader = load_traindata()
+	training_data_loader = load_traindata(partialData=True)
 	model = get_densenet(device)
 	trained_model = fit_model(model, training_data_loader, device, n_epochs=20)
-	test_model(classes, test_data_loader)
+	test_data_loader = load_testdata(partialData=True)
+	test_model(classes, test_data_loader, partialData=True)
 
 	# for i in range(len(classes)):

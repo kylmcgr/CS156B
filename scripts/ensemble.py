@@ -89,12 +89,12 @@ if __name__ == "__main__":
             'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
-	filename = "/home/kmcgraw/CS156b/predictions/emseble_test.csv"
+	filename = "/home/kmcgraw/CS156b/predictions/emseble_50x50_1000.csv"
 	batch_size = 64
 	imagex, imagey = 50, 50
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	Xdf, classesdf = load_traindata(partialData=True, imagex=imagex, imagey=imagey)
-	X_test, ids = load_testdata(partialData=True, imagex=imagex, imagey=imagey)
+	Xdf, classesdf = load_traindata(partialData=True, numdata=1000, imagex=imagex, imagey=imagey)
+	X_test, ids = load_testdata(imagex=imagex, imagey=imagey)
 	for i in range(len(classes)):
 		model = get_densenet(device)
 		knownValues = classesdf[classes[i]]!=0
@@ -104,7 +104,7 @@ if __name__ == "__main__":
 		y_train = torch.from_numpy(y_vals.to_numpy().astype('float32'))
 		train_dataset = TensorDataset(X_train, y_train)
 		training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
-		trained_model = fit_model(model, training_data_loader, device, n_epochs=1)
+		trained_model = fit_model(model, training_data_loader, device)
 		test_dataset = TensorDataset(X_test)
 		test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 		test_model(classes, test_data_loader, filename, ids)

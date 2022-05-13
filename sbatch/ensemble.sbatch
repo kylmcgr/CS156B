@@ -8,7 +8,7 @@
 #SBATCH -A CS156b
 
 # can set to 8 to 10 hours to start to test
-#SBATCH -t 20:00:00
+#SBATCH -t 72:00:00
 
 # change if we use multiple srun tasks
 #SBATCH --ntasks=1
@@ -17,7 +17,7 @@
 #SBATCH --cpus-per-task=4
 
 # bump this up if we start running out of memory
-#SBATCH --mem=128G
+#SBATCH --mem=64G
 
 # definitely want to use GPU acceleration of whatever library we do
 #SBATCH --gres=gpu:1

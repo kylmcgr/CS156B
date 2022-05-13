@@ -21,9 +21,7 @@ def load_traindata(partialData=False, numdata=1000, imagex=320, imagey=320):
 		classesdf = traindf[classes].fillna(0).iloc[:numdata]
 		paths = traindf["Path"].iloc[:numdata].tolist()
 	Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths])
-	X_train = torch.from_numpy(Xdf.reshape((-1, 1, imagex, imagey)).astype('float32'))
-	y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
-	return X_train, y_train
+	return Xdf, classesdf
 
 def load_testdata(partialData=False, numtest=10, imagex=320, imagey=320):
 	prefix = "/groups/CS156b/data/"
@@ -94,14 +92,18 @@ if __name__ == "__main__":
 	filename = "/home/kmcgraw/CS156b/predictions/emseble_test.csv"
 	batch_size = 64
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	X_train, y_train = load_traindata(partialData=True, imagex=50, imagey=50)
-	train_dataset = TensorDataset(X_train, y_train)
-	training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
-	model = get_densenet(device)
-	trained_model = fit_model(model, training_data_loader, device, n_epochs=1)
+	Xdf, classesdf = load_traindata(partialData=True, imagex=50, imagey=50)
 	X_test, ids = load_testdata(partialData=True, imagex=50, imagey=50)
-	test_dataset = TensorDataset(X_test)
-	test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
-	test_model(classes, test_data_loader, filename, ids)
-
-	# for i in range(len(classes)):
+	for i in range(len(classes)):
+		model = get_densenet(device)
+		knownValues = classesdf[classes[i]]!=0
+		x_vals = Xdf[knownValues]
+		y_vals = classesdf.loc[knownValues]
+		X_train = torch.from_numpy(x_vals.reshape((-1, 1, imagex, imagey)).astype('float32'))
+		y_train = torch.from_numpy(y_vals.to_numpy().astype('float32'))
+		train_dataset = TensorDataset(X_train, y_train)
+		training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
+		trained_model = fit_model(model, training_data_loader, device, n_epochs=1)
+		test_dataset = TensorDataset(X_test)
+		test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+		test_model(classes, test_data_loader, filename, ids)

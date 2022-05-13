@@ -91,9 +91,10 @@ if __name__ == "__main__":
             'Pleural Other', 'Fracture', 'Support Devices']
 	filename = "/home/kmcgraw/CS156b/predictions/emseble_test.csv"
 	batch_size = 64
+	imagex, imagey = 50, 50
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	Xdf, classesdf = load_traindata(partialData=True, imagex=50, imagey=50)
-	X_test, ids = load_testdata(partialData=True, imagex=50, imagey=50)
+	Xdf, classesdf = load_traindata(partialData=True, imagex=imagex, imagey=imagey)
+	X_test, ids = load_testdata(partialData=True, imagex=imagex, imagey=imagey)
 	for i in range(len(classes)):
 		model = get_densenet(device)
 		knownValues = classesdf[classes[i]]!=0

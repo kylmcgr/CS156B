@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=densenet_50x50_DarthJarJar
+#SBATCH --job-name=ensemble_50x50_DarthJarJar
 
 #SBATCH --output=/home/kmcgraw/%j.out
 #SBATCH --error=/home/kmcgraw/%j.err
@@ -8,7 +8,7 @@
 #SBATCH -A CS156b
 
 # can set to 8 to 10 hours to start to test
-#SBATCH -t 72:00:00
+#SBATCH -t 20:00:00
 
 # change if we use multiple srun tasks
 #SBATCH --ntasks=1

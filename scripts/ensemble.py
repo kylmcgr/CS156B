@@ -89,7 +89,11 @@ if __name__ == "__main__":
             'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
-	filename = "/home/kmcgraw/CS156b/predictions/emseble_50x50_1000.csv"
+    groups = [['Enlarged Cardiomediastinum', 'Cardiomegaly'],
+            ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
+            'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
+            'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
+	filename = "/home/kmcgraw/CS156b/predictions/emseble_groups_50x50_1000.csv"
 	batch_size = 64
 	imagex, imagey = 50, 50
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

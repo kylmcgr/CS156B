@@ -60,7 +60,7 @@ def get_CNN(device, updateWeights=False):
 	    nn.Dropout(p=0.5),
 
 	    nn.Flatten(),
-	    nn.Linear(41472, 3456),
+	    nn.Linear(25088, 3456),
 	    nn.ReLU(),
 	    nn.Dropout(0.2),
 	    nn.Linear(3456, 288),
@@ -68,7 +68,7 @@ def get_CNN(device, updateWeights=False):
 	    nn.Dropout(0.2),
 	    nn.Linear(288, 64),
 	    nn.ReLU(),
-	    nn.Linear(64, 14),
+	    nn.Linear(64, 1),
 	    nn.Tanh()
 	)
 	return model
@@ -81,7 +81,7 @@ def get_densenet(device, updateWeights=False):
 	model.classifier = nn.Sequential(nn.Linear(2208, 512),
 	                                 nn.ReLU(),
 	                                 nn.Dropout(0.2),
-	                                 nn.Linear(512, 14),
+	                                 nn.Linear(512, 1),
 	                                 nn.LogSoftmax(dim=1),
 	                                 nn.Tanh())
 	return model
@@ -90,7 +90,7 @@ def get_inception(device, updateWeights=False):
 	model = models.inception_v3(pretrained=True)
 	model.transform_input = False
 	model.Conv2d_1a_3x3 = nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=3, bias=False)
-	model.fc = nn.Linear(2048, 14)
+	model.fc = nn.Linear(2048, 1)
 	return model
 
 def get_resnet(device, updateWeights=False):
@@ -101,7 +101,7 @@ def get_resnet(device, updateWeights=False):
 	model.fc = nn.Sequential(nn.Linear(2048, 512),
 	                                 nn.ReLU(),
 	                                 nn.Dropout(0.2),
-	                                 nn.Linear(512, 14),
+	                                 nn.Linear(512, 1),
 	                                 nn.LogSoftmax(dim=1),
 	                                 nn.Tanh())
 	return model
@@ -109,12 +109,12 @@ def get_resnet(device, updateWeights=False):
 def get_vgg(device, updateWeights=False):
 	model = models.vgg16(pretrained=True)
 	model.features[0] = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
-	model.classifier[6] = nn.Linear(4096, 14)
+	model.classifier[6] = nn.Linear(4096, 1)
 	return model
 
 def fit_model(model, training_data_loader, device, n_epochs=20):
-	criterion = nn.MSELoss()
-	# criterion = nn.NLLLoss()
+	# criterion = nn.MSELoss()
+	criterion = nn.NLLLoss()
 	# criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(model.parameters(), lr=0.001)
 	model.to(device)
@@ -150,24 +150,24 @@ def test_model(classes, test_data_loader, filename, ids):
 
 if __name__ == "__main__":
 	classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
-            'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
-            'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
-            'Pleural Other', 'Fracture', 'Support Devices']
-    # groups = [['Enlarged Cardiomediastinum', 'Cardiomegaly'],
-    #         ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
-    #         'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
-    #         'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
-	filename = "/home/kmcgraw/CS156b/predictions/emseble_CNN_256x256_1000.csv"
+	        'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
+	        'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
+	        'Pleural Other', 'Fracture', 'Support Devices']
+	# groups = [['Enlarged Cardiomediastinum', 'Cardiomegaly'],
+	#         ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
+	#         'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
+	#         'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
+	filename = "/home/kmcgraw/CS156b/predictions/emseble_densenet_NLL_256x256.csv"
 	batch_size = 64
 	imagex, imagey = 256, 256
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	Xdf, classesdf = load_traindata(partialData=True, numdata=1000, imagex=imagex, imagey=imagey)
+	Xdf, classesdf = load_traindata(imagex=imagex, imagey=imagey)
 	X_test, ids = load_testdata(imagex=imagex, imagey=imagey)
 	for i in range(len(classes)):
-		model = get_CNN(device)
-		knownValues = classesdf[classes[i]]!=0
+		model = get_densenet(device)
+		knownValues = ~classesdf[classes[i]].isna()
 		x_vals = Xdf[knownValues]
-		y_vals = classesdf.loc[knownValues]
+		y_vals = classesdf[classes[i]].loc[knownValues]
 		X_train = torch.from_numpy(x_vals.reshape((-1, 1, imagex, imagey)).astype('float32'))
 		y_train = torch.from_numpy(y_vals.to_numpy().astype('float32'))
 		train_dataset = TensorDataset(X_train, y_train)

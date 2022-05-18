@@ -13,5 +13,3 @@ traindf = pd.read_csv(train)
 paths = traindf["Path"].tolist()[:-1]
 
 Xdf = np.array([np.asarray(Image.open(prefix+path).resize((256, 256))) for path in paths])
-# Xdf = np.array([np.asarray(cv2.resize(cv2.imread(prefix+path,-1), (256, 256))) for path in paths])
-# Xdf = np.array([np.asarray(transform.resize(io.imread(prefix+path), (256, 256))) for path in paths])

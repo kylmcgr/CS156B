@@ -14,7 +14,7 @@
 #SBATCH --ntasks=1
 
 # tune this if we use matlab or mathematica or r
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 
 # bump this up if we start running out of memory
 #SBATCH --mem=64G

@@ -37,6 +37,42 @@ def load_testdata(partialData=False, numtest=10, imagex=320, imagey=320):
 		ids = testdf['Id'].iloc[:numtest].tolist()
 	return X_test, ids
 
+def get_CNN(device, updateWeights=False):
+	model = nn.Sequential(
+	    nn.Conv2d(1, 64, kernel_size=(3,3)),
+	    nn.ReLU(),
+	    nn.MaxPool2d(2),
+	    nn.Dropout(p=0.5),
+
+	    nn.Conv2d(64, 64, kernel_size=(3,3)),
+	    nn.ReLU(),
+	    nn.MaxPool2d(2),
+	    nn.Dropout(p=0.5),
+
+	    nn.Conv2d(64, 128, kernel_size=(3,3)),
+	    nn.ReLU(),
+	    nn.MaxPool2d(2),
+	    nn.Dropout(p=0.5),
+
+	    nn.Conv2d(128, 128, kernel_size=(3,3)),
+	    nn.ReLU(),
+	    nn.MaxPool2d(2),
+	    nn.Dropout(p=0.5),
+
+	    nn.Flatten(),
+	    nn.Linear(41472, 3456),
+	    nn.ReLU(),
+	    nn.Dropout(0.2),
+	    nn.Linear(3456, 288),
+	    nn.ReLU(),
+	    nn.Dropout(0.2),
+	    nn.Linear(288, 64),
+	    nn.ReLU(),
+	    nn.Linear(64, 14),
+	    nn.Tanh()
+	)
+	return model
+
 def get_densenet(device, updateWeights=False):
 	model = models.densenet161(pretrained=True)
 	model.features.conv0 = nn.Conv2d(1, 96, kernel_size=7, stride=2, padding=3,bias=False)
@@ -50,8 +86,36 @@ def get_densenet(device, updateWeights=False):
 	                                 nn.Tanh())
 	return model
 
+def get_inception(device, updateWeights=False):
+	model = models.inception_v3(pretrained=True)
+	model.transform_input = False
+	model.Conv2d_1a_3x3 = nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=3, bias=False)
+	model.fc = nn.Linear(2048, 14)
+	return model
+
+def get_resnet(device, updateWeights=False):
+	model = models.resnet50(pretrained=True)
+	model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3,bias=False)
+	for param in model.parameters():
+	    param.requires_grad = False
+	model.fc = nn.Sequential(nn.Linear(2048, 512),
+	                                 nn.ReLU(),
+	                                 nn.Dropout(0.2),
+	                                 nn.Linear(512, 14),
+	                                 nn.LogSoftmax(dim=1),
+	                                 nn.Tanh())
+	return model
+
+def get_vgg(device, updateWeights=False):
+	model = models.vgg16(pretrained=True)
+	model.features[0] = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+	model.classifier[6] = nn.Linear(4096, 14)
+	return model
+
 def fit_model(model, training_data_loader, device, n_epochs=20):
 	criterion = nn.MSELoss()
+	# criterion = nn.NLLLoss()
+	# criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(model.parameters(), lr=0.001)
 	model.to(device)
 	training_loss_history = np.zeros([n_epochs, 1])
@@ -89,18 +153,18 @@ if __name__ == "__main__":
             'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
-    groups = [['Enlarged Cardiomediastinum', 'Cardiomegaly'],
-            ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
-            'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
-            'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
-	filename = "/home/kmcgraw/CS156b/predictions/emseble_groups_50x50_1000.csv"
+    # groups = [['Enlarged Cardiomediastinum', 'Cardiomegaly'],
+    #         ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
+    #         'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
+    #         'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
+	filename = "/home/kmcgraw/CS156b/predictions/emseble_CNN_256x256_1000.csv"
 	batch_size = 64
 	imagex, imagey = 256, 256
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	Xdf, classesdf = load_traindata(partialData=True, numdata=1000, imagex=imagex, imagey=imagey)
 	X_test, ids = load_testdata(imagex=imagex, imagey=imagey)
 	for i in range(len(classes)):
-		model = get_densenet(device)
+		model = get_CNN(device)
 		knownValues = classesdf[classes[i]]!=0
 		x_vals = Xdf[knownValues]
 		y_vals = classesdf.loc[knownValues]

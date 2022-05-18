@@ -15,10 +15,10 @@ def load_traindata(partialData=False, numdata=1000, imagex=320, imagey=320):
 	prefix = "/groups/CS156b/data/"
 	train = "/groups/CS156b/data/student_labels/train.csv"
 	traindf = pd.read_csv(train)
-	classesdf = traindf[classes].fillna(0)[:-1]
+	classesdf = traindf[classes][:-1]
 	paths = traindf["Path"].tolist()[:-1]
 	if partialData:
-		classesdf = traindf[classes].fillna(0).iloc[:numdata]
+		classesdf = traindf[classes].iloc[:numdata]
 		paths = traindf["Path"].iloc[:numdata].tolist()
 	Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths])
 	return Xdf, classesdf
@@ -95,7 +95,7 @@ if __name__ == "__main__":
             'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
 	filename = "/home/kmcgraw/CS156b/predictions/emseble_groups_50x50_1000.csv"
 	batch_size = 64
-	imagex, imagey = 50, 50
+	imagex, imagey = 256, 256
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	Xdf, classesdf = load_traindata(partialData=True, numdata=1000, imagex=imagex, imagey=imagey)
 	X_test, ids = load_testdata(imagex=imagex, imagey=imagey)

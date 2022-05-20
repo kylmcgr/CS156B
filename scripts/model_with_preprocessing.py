@@ -77,7 +77,7 @@ def preprocessing_simple(image):
 	selection[~area_closed] = 0
 	return selection
 
-def load_traindata(processing, partialData=False, numdata=1000, fillna=True, naVal=-1, imagex=320, imagey=320):
+def load_traindata(processing, classes, partialData=False, numdata=1000, fillna=True, naVal=-1, imagex=320, imagey=320):
 	prefix = "/groups/CS156b/data/"
 	train = "/groups/CS156b/data/student_labels/train.csv"
 	traindf = pd.read_csv(train)
@@ -97,16 +97,16 @@ def load_traindata(processing, partialData=False, numdata=1000, fillna=True, naV
 	return Xdf, classesdf
 
 def get_dataLoader(Xdf, classesdf, classi, processing, ensemble=False, imagex=320, imagey=320):
+	channels = 1
+	if processing == "complex":
+		channels = 3
 	x_vals = Xdf
 	y_vals = classesdf
 	if ensemble:
 		knownValues = ~classesdf[classi].isna()
 		x_vals = Xdf[knownValues]
 		y_vals = classesdf[classi].loc[knownValues]
-	if processing == "complex":
-		X_train = torch.from_numpy(x_vals.reshape((-1, 1, imagex, imagey, 3)).astype('float32'))
-	else:
-		X_train = torch.from_numpy(x_vals.reshape((-1, 1, imagex, imagey)).astype('float32'))
+	X_train = torch.from_numpy(x_vals.reshape((-1, channels, imagex, imagey)).astype('float32'))
 	y_train = torch.from_numpy(y_vals.to_numpy().astype('float32'))
 	train_dataset = TensorDataset(X_train, y_train)
 	training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
@@ -247,6 +247,7 @@ def fit_model(model, training_data_loader, device, n_epochs=20):
 	    model.train()
 	    for i, data in enumerate(training_data_loader):
 	        images, labels = data
+			labels = labels.type(torch.LongTensor)
 	        images, labels = images.to(device), labels.to(device)
 	        optimizer.zero_grad()
 	        output = model.forward(images)
@@ -259,7 +260,7 @@ def fit_model(model, training_data_loader, device, n_epochs=20):
 	    print(f'\n\tloss: {training_loss_history[epoch,0]:0.4f}',end='')
 	return model
 
-def test_model(classes, test_data_loader, filename, ids):
+def test_model(model, classes, test_data_loader, filename, ids):
 	out = np.empty((0,len(classes)), int)
 	with torch.no_grad():
 	    model.eval()
@@ -285,14 +286,14 @@ if __name__ == "__main__":
 	processing = "none" # none, simple, complex
 	ensemble = False
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	Xdf, classesdf = load_traindata(processing, partialData=True)
+	Xdf, classesdf = load_traindata(processing, classes, partialData=True)
 	test_data_loader, ids = load_testdata(processing)
 	if ensemble:
 		for i in range(len(classes)):
 			model = get_densenet(device, processing)
 			training_data_loader = get_dataLoader(Xdf, classesdf, classes[i], processing)
 			trained_model = fit_model(model, training_data_loader, device)
-			test_model(classes, test_data_loader, filename, ids)
+			test_model(trained_model, classes, test_data_loader, filename, ids)
 	else:
 		model = get_densenet(device, processing)
 		training_data_loader = get_dataLoader(Xdf, classesdf, 0, processing)

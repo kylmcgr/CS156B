@@ -96,13 +96,13 @@ def load_traindata(processing, partialData=False, numdata=1000, fillna=True, naV
 		Xdf = np.array([np.asarray(Image.open(prefix+path).resize((imagex, imagey))) for path in paths])
 	return Xdf, classesdf
 
-def get_dataLoader(Xdf, classesdf, class, processing, ensemble=False):
+def get_dataLoader(Xdf, classesdf, classi, processing, ensemble=False, imagex=320, imagey=320):
 	x_vals = Xdf
 	y_vals = classesdf
 	if ensemble:
-		knownValues = ~classesdf[class].isna()
+		knownValues = ~classesdf[classi].isna()
 		x_vals = Xdf[knownValues]
-		y_vals = classesdf[class].loc[knownValues]
+		y_vals = classesdf[classi].loc[knownValues]
 	if processing == "complex":
 		X_train = torch.from_numpy(x_vals.reshape((-1, 1, imagex, imagey, 3)).astype('float32'))
 	else:
@@ -133,10 +133,13 @@ def load_testdata(partialData=False, numtest=10, imagex=320, imagey=320):
 		ids = testdf['Id'].iloc[:numtest].tolist()
 	return test_data_loader, ids
 
-def get_CNN(device, processing, updateWeights=False):
+def get_CNN(device, processing, ensemble=False, updateWeights=False):
 	channels = 1
 	if processing == "complex":
 		channels = 3
+	out = 14
+	if ensemble:
+		out = 1
 	model = nn.Sequential(
 	    nn.Conv2d(channels, 64, kernel_size=(3,3)),
 	    nn.ReLU(),
@@ -167,15 +170,18 @@ def get_CNN(device, processing, updateWeights=False):
 	    nn.Dropout(0.2),
 	    nn.Linear(288, 64),
 	    nn.ReLU(),
-	    nn.Linear(64, 1),
+	    nn.Linear(64, out),
 	    nn.Tanh()
 	)
 	return model
 
-def get_densenet(device, processing, updateWeights=False):
+def get_densenet(device, processing, ensemble=False, updateWeights=False):
 	channels = 1
 	if processing == "complex":
 		channels = 3
+	out = 14
+	if ensemble:
+		out = 1
 	model = models.densenet161(pretrained=True)
 	model.features.conv0 = nn.Conv2d(channels, 96, kernel_size=7, stride=2, padding=3,bias=False)
 	for param in model.parameters():
@@ -183,15 +189,18 @@ def get_densenet(device, processing, updateWeights=False):
 	model.classifier = nn.Sequential(nn.Linear(2208, 512),
 	                                 nn.ReLU(),
 	                                 nn.Dropout(0.2),
-	                                 nn.Linear(512, 1),
+	                                 nn.Linear(512, out),
 	                                 nn.LogSoftmax(dim=1),
 	                                 nn.Tanh())
 	return model
 
-def get_inception(device, processing, updateWeights=False):
+def get_inception(device, processing, ensemble=False, updateWeights=False):
 	channels = 1
 	if processing == "complex":
 		channels = 3
+	out = 14
+	if ensemble:
+		out = 1
 	model = models.inception_v3(pretrained=True)
 	model.transform_input = False
 	model.Conv2d_1a_3x3 = nn.Conv2d(channels, 32, kernel_size=3, stride=2, padding=3, bias=False)
@@ -209,18 +218,21 @@ def get_resnet(device, processing, updateWeights=False):
 	model.fc = nn.Sequential(nn.Linear(2048, 512),
 	                                 nn.ReLU(),
 	                                 nn.Dropout(0.2),
-	                                 nn.Linear(512, 1),
+	                                 nn.Linear(512, out),
 	                                 nn.LogSoftmax(dim=1),
 	                                 nn.Tanh())
 	return model
 
-def get_vgg(device, processing, updateWeights=False):
+def get_vgg(device, processing, ensemble=False, updateWeights=False):
 	channels = 1
 	if processing == "complex":
 		channels = 3
+	out = 14
+	if ensemble:
+		out = 1
 	model = models.vgg16(pretrained=True)
 	model.features[0] = nn.Conv2d(channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
-	model.classifier[6] = nn.Linear(4096, 1)
+	model.classifier[6] = nn.Linear(4096, out)
 	return model
 
 def fit_model(model, training_data_loader, device, n_epochs=20):
@@ -268,14 +280,21 @@ if __name__ == "__main__":
 	#         ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
 	#         'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
 	#         'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
-	filename = "/home/kmcgraw/CS156b/predictions/emseble_densenet_MSE_256x256_simple_1000.csv"
+	filename = "/home/kmcgraw/CS156b/predictions/densenet_MSE_none_1000.csv"
 	batch_size = 64
 	processing = "none" # none, simple, complex
+	ensemble = False
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	Xdf, classesdf = load_traindata(processing, partialData=True)
 	test_data_loader, ids = load_testdata(processing)
-	for i in range(len(classes)):
-		model = get_densenet(device)
-		training_data_loader = get_dataLoader(Xdf, classesdf, classes[i], processing)
+	if ensemble:
+		for i in range(len(classes)):
+			model = get_densenet(device, processing)
+			training_data_loader = get_dataLoader(Xdf, classesdf, classes[i], processing)
+			trained_model = fit_model(model, training_data_loader, device)
+			test_model(classes, test_data_loader, filename, ids)
+	else:
+		model = get_densenet(device, processing)
+		training_data_loader = get_dataLoader(Xdf, classesdf, 0, processing)
 		trained_model = fit_model(model, training_data_loader, device)
 		test_model(classes, test_data_loader, filename, ids)

@@ -114,8 +114,8 @@ def get_vgg(device, updateWeights=False):
 
 def fit_model(model, training_data_loader, device, n_epochs=20):
 	# criterion = nn.MSELoss()
-	criterion = nn.NLLLoss()
-	# criterion = nn.CrossEntropyLoss()
+# 	criterion = nn.NLLLoss()
+	criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(model.parameters(), lr=0.001)
 	model.to(device)
 	training_loss_history = np.zeros([n_epochs, 1])
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 	#         ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
 	#         'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
 	#         'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
-	filename = "/home/kmcgraw/CS156b/predictions/emseble_densenet_NLL_256x256.csv"
+	filename = "/home/kmcgraw/CS156b/predictions/emseble_densenet_CE_256x256.csv"
 	batch_size = 64
 	imagex, imagey = 256, 256
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=none_MSE_densenet_DarthJarJar
+#SBATCH --job-name=complex_MSE_densenet_DarthJarJar
 
 #SBATCH --output=/home/kmcgraw/%j.out
 #SBATCH --error=/home/kmcgraw/%j.err
@@ -14,10 +14,10 @@
 #SBATCH --ntasks=1
 
 # tune this if we use matlab or mathematica or r
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=12
 
 # bump this up if we start running out of memory
-#SBATCH --mem=64G
+#SBATCH --mem=128G
 
 # definitely want to use GPU acceleration of whatever library we do
 #SBATCH --gres=gpu:1

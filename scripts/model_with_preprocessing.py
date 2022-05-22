@@ -87,6 +87,8 @@ def load_traindata(processing, classes, partialData=False, numdata=1000, fillna=
 	paths = traindf["Path"].tolist()[:-1]
 	if partialData:
 		classesdf = traindf[classes].iloc[:numdata]
+		if fillna:
+		    classesdf = traindf[classes].fillna(naVal).iloc[:numdata]
 		paths = traindf["Path"].iloc[:numdata].tolist()
 	if processing == "simple":
 		Xdf = np.array([preprocessing_simple(Image.open(prefix+path)) for path in paths])
@@ -237,8 +239,8 @@ def get_vgg(device, processing, ensemble=False, updateWeights=False):
 
 def fit_model(model, training_data_loader, device, n_epochs=20):
 	criterion = nn.MSELoss()
-	# criterion = nn.NLLLoss()
-	# criterion = nn.CrossEntropyLoss()
+# 	criterion = nn.NLLLoss()
+# 	criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(model.parameters(), lr=0.001)
 	model.to(device)
 	training_loss_history = np.zeros([n_epochs, 1])
@@ -247,7 +249,7 @@ def fit_model(model, training_data_loader, device, n_epochs=20):
 	    model.train()
 	    for i, data in enumerate(training_data_loader):
 	        images, labels = data
-			labels = labels.type(torch.LongTensor)
+	       # labels = labels.type(torch.LongTensor)
 	        images, labels = images.to(device), labels.to(device)
 	        optimizer.zero_grad()
 	        output = model.forward(images)
@@ -273,29 +275,29 @@ def test_model(model, classes, test_data_loader, filename, ids):
 	outdf.to_csv(filename, index=False)
 
 if __name__ == "__main__":
-	classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
-	        'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
-	        'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
-	        'Pleural Other', 'Fracture', 'Support Devices']
-	# groups = [['Enlarged Cardiomediastinum', 'Cardiomegaly'],
-	#         ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
-	#         'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
-	#         'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
-	filename = "/home/kmcgraw/CS156b/predictions/densenet_MSE_none_1000.csv"
-	batch_size = 64
-	processing = "none" # none, simple, complex
-	ensemble = False
-	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	Xdf, classesdf = load_traindata(processing, classes, partialData=True)
-	test_data_loader, ids = load_testdata(processing)
-	if ensemble:
-		for i in range(len(classes)):
-			model = get_densenet(device, processing)
-			training_data_loader = get_dataLoader(Xdf, classesdf, classes[i], processing)
-			trained_model = fit_model(model, training_data_loader, device)
-			test_model(trained_model, classes, test_data_loader, filename, ids)
-	else:
-		model = get_densenet(device, processing)
-		training_data_loader = get_dataLoader(Xdf, classesdf, 0, processing)
-		trained_model = fit_model(model, training_data_loader, device)
-		test_model(classes, test_data_loader, filename, ids)
+    classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
+            'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
+            'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
+            'Pleural Other', 'Fracture', 'Support Devices']
+    # groups = [['Enlarged Cardiomediastinum', 'Cardiomegaly'],
+    #         ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
+    #         'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
+    #         'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
+    filename = "/home/kmcgraw/CS156b/predictions/densenet_MSE_complex.csv"
+    batch_size = 64
+    processing = "complex" # none, simple, complex
+    ensemble = False
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    Xdf, classesdf = load_traindata(processing, classes)
+    test_data_loader, ids = load_testdata(processing)
+    if ensemble:
+        for i in range(len(classes)):
+            model = get_densenet(device, processing)
+            training_data_loader = get_dataLoader(Xdf, classesdf, classes[i], processing)
+            trained_model = fit_model(model, training_data_loader, device)
+            test_model(trained_model, classes, test_data_loader, filename, ids)
+    else:
+        model = get_densenet(device, processing)
+        training_data_loader = get_dataLoader(Xdf, classesdf, 0, processing)
+        trained_model = fit_model(model, training_data_loader, device)
+        test_model(trained_model, classes, test_data_loader, filename, ids)

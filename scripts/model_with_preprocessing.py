@@ -15,6 +15,7 @@ import skimage.io
 import skimage.color
 import skimage.filters
 from sklearn import preprocessing
+import sys
 
 
 def preprocessing_complex(image):
@@ -275,6 +276,11 @@ def test_model(model, classes, test_data_loader, filename, ids):
 	outdf.to_csv(filename, index=False)
 
 if __name__ == "__main__":
+	if len(sys.argv) < 3:
+		print("Arguments count:")
+    sys.argv[0]
+	processing = "complex" # none, simple, complex
+    ensemble = False
     classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
             'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
@@ -285,8 +291,6 @@ if __name__ == "__main__":
     #         'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
     filename = "/home/kmcgraw/CS156b/predictions/densenet_MSE_complex.csv"
     batch_size = 64
-    processing = "complex" # none, simple, complex
-    ensemble = False
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     Xdf, classesdf = load_traindata(processing, classes)
     test_data_loader, ids = load_testdata(processing)

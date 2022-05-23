@@ -10,6 +10,7 @@ from torch.autograd import Variable
 from torchvision import datasets, transforms, models
 import torch.nn as nn
 from torch.utils.data import Dataset, TensorDataset, DataLoader
+import sys
 
 def load_traindata(partialData=False, numdata=1000, imagex=320, imagey=320):
 	prefix = "/groups/CS156b/data/"
@@ -149,6 +150,10 @@ def test_model(classes, test_data_loader, filename, ids):
 	outdf.to_csv(filename, index=False)
 
 if __name__ == "__main__":
+	if len(sys.argv) < 2:
+		print("(model type) ()")
+	model_type = sys.argv[0] # "densenet", "resnet", "inception"
+	criterion = sys.argv[1] # "MSE", "NLL", "CE"
 	classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
 	        'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
 	        'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
@@ -157,14 +162,22 @@ if __name__ == "__main__":
 	#         ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
 	#         'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
 	#         'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
-	filename = "/home/kmcgraw/CS156b/predictions/emseble_densenet_CE_256x256.csv"
 	batch_size = 64
-	imagex, imagey = 256, 256
+	imagex, imagey = 320, 320
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	Xdf, classesdf = load_traindata(imagex=imagex, imagey=imagey)
+	if len(sys.argv) > 2:
+		datapoints = sys.argv[2] # training datapoints
+		Xdf, classesdf = load_traindata(partialData=True, numdata=datapoints, imagex=imagex, imagey=imagey)
+		filename = "/home/kmcgraw/CS156b/predictions/emseble/"+model_type+"_"+criterion+"_"+datapoints".csv"
+	else:
+		Xdf, classesdf = load_traindata(imagex=imagex, imagey=imagey)
+		filename = "/home/kmcgraw/CS156b/predictions/emseble/"+model_type+"_"+criterion+".csv"
 	X_test, ids = load_testdata(imagex=imagex, imagey=imagey)
 	for i in range(len(classes)):
-		model = get_densenet(device)
+		if model_type == "densenet":
+			model = get_densenet(device)
+		elif model_type == "resnet":
+			model = get_resnet(device)
 		knownValues = ~classesdf[classes[i]].isna()
 		x_vals = Xdf[knownValues]
 		y_vals = classesdf[classes[i]].loc[knownValues]

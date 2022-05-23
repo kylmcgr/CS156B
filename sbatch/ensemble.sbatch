@@ -32,4 +32,4 @@ module load cuda/10.2
 
 source /home/kmcgraw/venv/bin/activate
 
-python /home/kmcgraw/CS156b/scripts/ensemble.py
+python /home/kmcgraw/CS156b/scripts/ensemble.py "densenet" "MSE" 1000

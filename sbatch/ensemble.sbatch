@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=CE_ensemble_256x256_DarthJarJar
+#SBATCH --job-name=NLL_densenet_ensemble_DarthJarJar
 
 #SBATCH --output=/home/kmcgraw/%j.out
 #SBATCH --error=/home/kmcgraw/%j.err
@@ -32,4 +32,4 @@ module load cuda/10.2
 
 source /home/kmcgraw/venv/bin/activate
 
-python /home/kmcgraw/CS156b/scripts/ensemble.py "densenet" "MSE" 1000
+python /home/kmcgraw/CS156b/scripts/ensemble.py densenet NLL 100

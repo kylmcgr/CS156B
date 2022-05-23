@@ -113,29 +113,36 @@ def get_vgg(device, updateWeights=False):
 	model.classifier[6] = nn.Linear(4096, 1)
 	return model
 
-def fit_model(model, training_data_loader, device, n_epochs=20):
-	# criterion = nn.MSELoss()
-# 	criterion = nn.NLLLoss()
-	criterion = nn.CrossEntropyLoss()
-	optimizer = optim.Adam(model.parameters(), lr=0.001)
-	model.to(device)
-	training_loss_history = np.zeros([n_epochs, 1])
-	for epoch in range(n_epochs):
-	    print(f'Epoch {epoch+1}/{n_epochs}:', end='')
-	    model.train()
-	    for i, data in enumerate(training_data_loader):
-	        images, labels = data
-	        images, labels = images.to(device), labels.to(device)
-	        optimizer.zero_grad()
-	        output = model.forward(images)
-	        loss = criterion(output, labels)
-	        loss.backward()
-	        optimizer.step()
-	        training_loss_history[epoch] += loss.item()
-	        if i % 180 == 0: print('.',end='')
-	    training_loss_history[epoch] /= len(training_data_loader)
-	    print(f'\n\tloss: {training_loss_history[epoch,0]:0.4f}',end='')
-	return model
+def fit_model(model, training_data_loader, device, criterion_type, n_epochs=20):
+    if criterion_type == "MSE":
+        criterion = nn.MSELoss()
+    elif criterion_type == "NLL":
+        criterion = nn.NLLLoss()
+    elif criterion_type == "CE":
+        criterion = nn.CrossEntropyLoss()
+    else:
+        print("incorrect criterion")
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    model.to(device)
+    training_loss_history = np.zeros([n_epochs, 1])
+    for epoch in range(n_epochs):
+        print(f'Epoch {epoch+1}/{n_epochs}:', end='')
+        model.train()
+        for i, data in enumerate(training_data_loader):
+            images, labels = data
+            images, labels = images.to(device), labels.to(device)
+            optimizer.zero_grad()
+            output = model.forward(images)
+            if criterion_type == "NLL":
+                labels=labels.to(torch.int64)
+            loss = criterion(output, labels)
+            loss.backward()
+            optimizer.step()
+            training_loss_history[epoch] += loss.item()
+            if i % 180 == 0: print('.',end='')
+        training_loss_history[epoch] /= len(training_data_loader)
+        print(f'\n\tloss: {training_loss_history[epoch,0]:0.4f}',end='')
+    return model
 
 def test_model(classes, test_data_loader, filename, ids):
 	out = np.empty((0,len(classes)), int)
@@ -150,10 +157,10 @@ def test_model(classes, test_data_loader, filename, ids):
 	outdf.to_csv(filename, index=False)
 
 if __name__ == "__main__":
-	if len(sys.argv) < 2:
-		print("(model type) ()")
-	model_type = sys.argv[0] # "densenet", "resnet", "inception"
-	criterion = sys.argv[1] # "MSE", "NLL", "CE"
+	if len(sys.argv) < 3:
+		print("(model type) (criterion) (datapoint optional)")
+	model_type = sys.argv[1] # "densenet", "resnet", "inception"
+	criterion_type = sys.argv[2] # "MSE", "NLL", "CE"
 	classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
 	        'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
 	        'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
@@ -165,19 +172,23 @@ if __name__ == "__main__":
 	batch_size = 64
 	imagex, imagey = 320, 320
 	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-	if len(sys.argv) > 2:
-		datapoints = sys.argv[2] # training datapoints
-		Xdf, classesdf = load_traindata(partialData=True, numdata=datapoints, imagex=imagex, imagey=imagey)
-		filename = "/home/kmcgraw/CS156b/predictions/emseble/"+model_type+"_"+criterion+"_"+datapoints".csv"
+	if len(sys.argv) > 3:
+		datapoints = sys.argv[3] # training datapoints
+		Xdf, classesdf = load_traindata(partialData=True, numdata=int(datapoints), imagex=imagex, imagey=imagey)
+		filename = "/home/kmcgraw/CS156b/predictions/emseble/"+model_type+"_"+criterion_type+"_"+datapoints+".csv"
 	else:
 		Xdf, classesdf = load_traindata(imagex=imagex, imagey=imagey)
-		filename = "/home/kmcgraw/CS156b/predictions/emseble/"+model_type+"_"+criterion+".csv"
+		filename = "/home/kmcgraw/CS156b/predictions/emseble/"+model_type+"_"+criterion_type+".csv"
 	X_test, ids = load_testdata(imagex=imagex, imagey=imagey)
 	for i in range(len(classes)):
 		if model_type == "densenet":
 			model = get_densenet(device)
 		elif model_type == "resnet":
 			model = get_resnet(device)
+		elif model_type == "inception":
+			model = get_inception(device)
+		else:
+		    print("incorrect model type")
 		knownValues = ~classesdf[classes[i]].isna()
 		x_vals = Xdf[knownValues]
 		y_vals = classesdf[classes[i]].loc[knownValues]
@@ -185,7 +196,7 @@ if __name__ == "__main__":
 		y_train = torch.from_numpy(y_vals.to_numpy().astype('float32'))
 		train_dataset = TensorDataset(X_train, y_train)
 		training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
-		trained_model = fit_model(model, training_data_loader, device)
+		trained_model = fit_model(model, training_data_loader, device, criterion_type)
 		test_dataset = TensorDataset(X_test)
 		test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 		test_model(classes, test_data_loader, filename, ids)

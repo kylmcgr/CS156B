@@ -90,6 +90,8 @@ def get_densenet(device, updateWeights=False):
 def get_inception(device, updateWeights=False):
 	model = models.inception_v3(pretrained=True)
 	model.transform_input = False
+	for param in model.parameters():
+	    param.requires_grad = updateWeights
 	model.Conv2d_1a_3x3 = nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=3, bias=False)
 	model.fc = nn.Linear(2048, 1)
 	return model
@@ -98,7 +100,7 @@ def get_resnet(device, updateWeights=False):
 	model = models.resnet50(pretrained=True)
 	model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3,bias=False)
 	for param in model.parameters():
-	    param.requires_grad = False
+	    param.requires_grad = updateWeights
 	model.fc = nn.Sequential(nn.Linear(2048, 512),
 	                                 nn.ReLU(),
 	                                 nn.Dropout(0.2),
@@ -113,7 +115,7 @@ def get_vgg(device, updateWeights=False):
 	model.classifier[6] = nn.Linear(4096, 1)
 	return model
 
-def fit_model(model, training_data_loader, device, criterion_type, n_epochs=20):
+def fit_model(model, training_data_loader, device, criterion_type, model_type, n_epochs=20):
     if criterion_type == "MSE":
         criterion = nn.MSELoss()
     elif criterion_type == "NLL":
@@ -133,9 +135,12 @@ def fit_model(model, training_data_loader, device, criterion_type, n_epochs=20):
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             output = model.forward(images)
-            if criterion_type == "NLL":
+            if criterion_type == "NLL" or criterion_type == "CE":
                 labels=labels.to(torch.int64)
-            loss = criterion(output, labels)
+            if model_type == "inception":
+                loss = criterion(output.logits, labels)
+            else:
+                loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
             training_loss_history[epoch] += loss.item()
@@ -144,17 +149,15 @@ def fit_model(model, training_data_loader, device, criterion_type, n_epochs=20):
         print(f'\n\tloss: {training_loss_history[epoch,0]:0.4f}',end='')
     return model
 
-def test_model(classes, test_data_loader, filename, ids):
-	out = np.empty((0,len(classes)), int)
-	with torch.no_grad():
+def test_model(test_data_loader):
+    out = np.empty((0,1), int)
+    with torch.no_grad():
 	    model.eval()
 	    for i, data in enumerate(test_data_loader):
 	        images = data[0].to(device)
 	        output = model(images).cpu().numpy()
 	        out = np.append(out, output, axis=0)
-	outdf = pd.DataFrame(data = out, columns=classes)
-	outdf.insert(0, 'Id', ids)
-	outdf.to_csv(filename, index=False)
+    return out
 
 if __name__ == "__main__":
 	if len(sys.argv) < 3:
@@ -175,18 +178,19 @@ if __name__ == "__main__":
 	if len(sys.argv) > 3:
 		datapoints = sys.argv[3] # training datapoints
 		Xdf, classesdf = load_traindata(partialData=True, numdata=int(datapoints), imagex=imagex, imagey=imagey)
-		filename = "/home/kmcgraw/CS156b/predictions/emseble/"+model_type+"_"+criterion_type+"_"+datapoints+".csv"
+		filename = "/home/kmcgraw/CS156b/predictions/ensemble/"+model_type+"_"+criterion_type+"_"+datapoints+".csv"
 	else:
 		Xdf, classesdf = load_traindata(imagex=imagex, imagey=imagey)
-		filename = "/home/kmcgraw/CS156b/predictions/emseble/"+model_type+"_"+criterion_type+".csv"
+		filename = "/home/kmcgraw/CS156b/predictions/ensemble/"+model_type+"_"+criterion_type+".csv"
 	X_test, ids = load_testdata(imagex=imagex, imagey=imagey)
+	out = []
 	for i in range(len(classes)):
 		if model_type == "densenet":
-			model = get_densenet(device)
+			model = get_densenet(device, updateWeights=False)
 		elif model_type == "resnet":
-			model = get_resnet(device)
+			model = get_resnet(device, updateWeights=False)
 		elif model_type == "inception":
-			model = get_inception(device)
+			model = get_inception(device, updateWeights=False)
 		else:
 		    print("incorrect model type")
 		knownValues = ~classesdf[classes[i]].isna()
@@ -196,7 +200,10 @@ if __name__ == "__main__":
 		y_train = torch.from_numpy(y_vals.to_numpy().astype('float32'))
 		train_dataset = TensorDataset(X_train, y_train)
 		training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
-		trained_model = fit_model(model, training_data_loader, device, criterion_type)
+		trained_model = fit_model(model, training_data_loader, device, criterion_type, model_type)
 		test_dataset = TensorDataset(X_test)
 		test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
-		test_model(classes, test_data_loader, filename, ids)
+		out.append(test_model(test_data_loader))
+	outdf = pd.DataFrame(data = np.array(out).T, columns=classes)
+	outdf.insert(0, 'Id', ids)
+	outdf.to_csv(filename, index=False)

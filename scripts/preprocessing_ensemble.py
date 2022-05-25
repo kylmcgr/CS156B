@@ -269,12 +269,12 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print("(model type) (criterion) (datapoint optional)")
     processing = sys.argv[1] # "simple", "complex", "none"
-	classi = sys.argv[2] # 0-13
+    classi = sys.argv[2] # 0-13
     classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
             'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
-	batch_size = 64
+    batch_size = 64
     imagex, imagey = 320, 320
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if len(sys.argv) > 3:
@@ -285,5 +285,5 @@ if __name__ == "__main__":
     	Xdf, classesdf = load_traindata(processing, classes, imagex=imagex, imagey=imagey)
     	filename = "/groups/CS156b/2022/team_dirs/darthjarjar/processing_ensemble/"+processing+"/"+classi+".pt"
     X_train = get_dataLoader(Xdf, classesdf, classes[int(classi)], processing)
-	torch.save(X_train, filename)
+    torch.save(X_train, filename)
 	# save test data in bens code

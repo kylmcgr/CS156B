@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=complex_false_densenet_DarthJarJar
+#SBATCH --job-name=save_10_ensemble_DarthJarJar
 
 #SBATCH --output=/home/kmcgraw/%j.out
 #SBATCH --error=/home/kmcgraw/%j.err
@@ -8,16 +8,16 @@
 #SBATCH -A CS156b
 
 # can set to 8 to 10 hours to start to test
-#SBATCH -t 40:00:00
+#SBATCH -t 1:00:00
 
 # change if we use multiple srun tasks
 #SBATCH --ntasks=1
 
 # tune this if we use matlab or mathematica or r
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=1
 
 # bump this up if we start running out of memory
-#SBATCH --mem=128G
+#SBATCH --mem=64G
 
 # definitely want to use GPU acceleration of whatever library we do
 #SBATCH --gres=gpu:1
@@ -32,4 +32,4 @@ module load cuda/10.2
 
 source /home/kmcgraw/venv/bin/activate
 
-python /home/kmcgraw/CS156b/scripts/model_with_preprocessing.py resnet MSE complex false
+python /home/kmcgraw/CS156b/scripts/preprocessing_ensemble.py none 0 10

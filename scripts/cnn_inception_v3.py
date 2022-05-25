@@ -58,7 +58,7 @@ def preprocessing_complex(image):
 	selection = total_img.copy()
 	selection[~area_closed] = 0
 	return selection
-	
+
 def preprocessing_simple(image):
 	new_image = image.resize((320, 320))
 	new_image = np.float32(new_image)
@@ -99,7 +99,7 @@ if partial_data:
     classesdf = traindf[classes].fillna(fill).iloc[:1000]
     paths = traindf["Path"].iloc[:1000].tolist()
 else:
-    classesdf = traindf[classes].fillna(fill) 
+    classesdf = traindf[classes].fillna(fill)
     paths = traindf["Path"].tolist()[:-1]
 
 if pp:
@@ -115,8 +115,8 @@ X_train = torch.from_numpy(Xdf.reshape((-1, 1, resizex, resizey)).astype('float3
 if partial_data:
     y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32'))
 else:
-    y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32')[:-1]) 
-    
+    y_train = torch.from_numpy((classesdf+1).to_numpy().astype('float32')[:-1])
+
 train_dataset = TensorDataset(X_train, y_train)
 training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 
@@ -136,18 +136,18 @@ if frozen:
         param.requires_grad = False
 
 if final_layer_complex:
-    model.fc = nn.Sequential(nn.Linear(2048, 512), 
-                                nn.ReLU(), 
-                                nn.Dropout(0.2), 
-                                nn.Linear(512, 14), 
-                                nn.LogSoftmax(dim=1), 
+    model.fc = nn.Sequential(nn.Linear(2048, 512),
+                                nn.ReLU(),
+                                nn.Dropout(0.2),
+                                nn.Linear(512, 14),
+                                nn.LogSoftmax(dim=1),
                                 nn.Tanh())
 elif tanh:
     model.fc = nn.Sequential(nn.Linear(2048, 14),
                                 nn.Tanh())
 else:
     model.fc = nn.Linear(2048, 14)
-    
+
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 model.to(device)
@@ -167,7 +167,7 @@ for epoch in range(n_epochs):
         training_loss_history[epoch] += loss.item()
     training_loss_history[epoch] /= len(training_data_loader)
     print(f'\n\tloss: {training_loss_history[epoch,0]:0.4f}',end='')
-    
+
 testdf = pd.read_csv("/groups/CS156b/data/student_labels/test_ids.csv")
 
 if partial_data:
@@ -188,11 +188,10 @@ with torch.no_grad():
         images = data[0].to(device)
         output = model(images).cpu().numpy()
         out = np.append(out, output, axis=0)
-        
+
 outdf = pd.DataFrame(data = out, columns=traindf.columns[6:])
 if partial_data:
     outdf.insert(0, 'Id', testdf['Id'].iloc[:10].tolist())
 else:
     outdf.insert(0, 'Id', testdf['Id'].tolist())
 outdf.to_csv("/home/bjuarez/CS156b/predictions/inceptionV3_fill-1_tanh_frozen_pp=simple_data=full.csv", index=False)
-

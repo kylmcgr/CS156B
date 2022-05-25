@@ -293,7 +293,6 @@ if __name__ == "__main__":
     else:
     	Xdf, classesdf = load_traindata(processing, classes, imagex=imagex, imagey=imagey)
     	filename = "/home/kmcgraw/CS156b/predictions/ensemble/processing/"+processing+"_"+model_type+"_"+criterion_type+"_"+weight_update+".csv"
-    Xdf, classesdf = load_traindata(processing, classes)
     test_data_loader, ids = load_testdata(processing)
     out = []
     for i in range(len(classes)):
@@ -311,4 +310,3 @@ if __name__ == "__main__":
     outdf = pd.DataFrame(data = np.array(out).T, columns=classes)
     outdf.insert(0, 'Id', ids)
     outdf.to_csv(filename, index=False)
-    

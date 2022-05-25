@@ -61,13 +61,14 @@ def preprocessing_simple(image):
 	selection[~area_closed] = 0
 	return selection
 	
-def load_traindata(processing, classes, partial_data, naVal, fillna=True, numdata=1000, resizex=320, resizey=320):
+def load_traindata(processing, classes, naVal, split, fillna=True, resizex=320, resizey=320):
     traindf = pd.read_csv("/groups/CS156b/data/student_labels/train.csv")
-    classesdf = traindf[classes].fillna(naVal) # [:-1]
-    paths = traindf["Path"].tolist()[:-1]    
-    if partial_data:
-        classesdf = traindf[classes].fillna(naVal).iloc[:numdata]
-        paths = traindf["Path"].iloc[:numdata].tolist()
+    N = len(traindf.shape[0])
+    # split = [0,10]
+    beg = split * 15000
+    end = (split + 1) * 15000
+    classesdf = traindf[classes].fillna(naVal).iloc[beg:end]
+    paths = traindf["Path"].iloc[beg:end].tolist()  
     if processing == "simple":
         Xdf = np.array([preprocessing_simple(Image.open("/groups/CS156b/data/"+path)) for path in paths])
     elif processing == "complex":
@@ -76,18 +77,18 @@ def load_traindata(processing, classes, partial_data, naVal, fillna=True, numdat
         Xdf = np.array([np.asarray(Image.open("/groups/CS156b/data/"+path).resize((resizex, resizey))) for path in paths])
     return Xdf, classesdf
     
-def get_dataLoader(Xdf, classesdf, processing, partial_data, resizex=320, resizey=320):
+def get_dataLoader(Xdf, classesdf, processing, resizex=320, resizey=320):
     num_channels = 1
     if processing == "complex":
         num_channels = 3
     X_train = torch.from_numpy(Xdf.reshape((-1, num_channels, resizex, resizey)).astype('float32'))
     return X_train
     
-def load_testdata(processing, partial_data, resizex=320, resizey=320, numtest=10):
+def load_testdata(processing, resizex=320, resizey=320, numtest=10):
     testdf = pd.read_csv("/groups/CS156b/data/student_labels/test_ids.csv")
     testpaths = testdf["Path"].tolist()
-    if partial_data:
-        testpaths = testdf["Path"].iloc[:numtest].tolist()
+    # if partial_data:
+    #     testpaths = testdf["Path"].iloc[:numtest].tolist()
     if processing == "simple":
         Xtestdf = np.array([preprocessing_simple(Image.open("/groups/CS156b/data/"+path)) for path in testpaths])
         X_test = torch.from_numpy(Xtestdf.reshape((-1, 1, resizex, resizey)).astype('float32'))
@@ -101,17 +102,21 @@ def load_testdata(processing, partial_data, resizex=320, resizey=320, numtest=10
     
 	
 if __name__ == "__main__":
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 5:
         print("Invalid number of arguments")
         sys.exit()
     processing = sys.argv[1] # processing = simple, or complex
     naVal = sys.argv[2] # -1, 0, -0,5
-    if sys.argv[3] == "partial":
-        partial_data = True
+    # if sys.argv[3] == "partial":
+    #     partial_data = True
+    # else:
+    #     partial_data = False
+    split = int(sys.argv[3]) # [0,10]
+    if sys.argv[4] == "test_only":
+        test_only = True
     else:
-        partial_data = False
+        test_only = False
 
-        
     classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
             'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
@@ -121,9 +126,11 @@ if __name__ == "__main__":
     batch_size = 64
     
     device = torch.device("cuda:0")
-    Xdf, classesdf = load_traindata(processing, classes, partial_data, naVal)
-    X_train = get_dataLoader(Xdf, classesdf, processing, partial_data)
-    torch.save(X_train, filename)
-    X_test = load_testdata(processing, partial_data)
-    filename = "/groups/CS156b/2022/team_dirs/DJJ/processed_test_data_"+processing+"_"+sys.argv[3]+".pt"
-    torch.save(X_test, filename)
+    if not test_onlu:
+        Xdf, classesdf = load_traindata(processing, classes, naVal, split)
+        X_train = get_dataLoader(Xdf, classesdf, processing)
+        torch.save(X_train, filename)
+    else:
+        X_test = load_testdata(processing)
+        filename = "/groups/CS156b/2022/team_dirs/DJJ/processed_test_data_"+processing+"_"+sys.argv[3]+".pt"
+        torch.save(X_test, filename)

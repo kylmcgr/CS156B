@@ -103,10 +103,10 @@ def get_dataLoader(Xdf, classesdf, classi, processing, imagex=320, imagey=320):
 	x_vals = Xdf[knownValues]
 	y_vals = classesdf[classi].loc[knownValues]
 	X_train = torch.from_numpy(x_vals.reshape((-1, channels, imagex, imagey)).astype('float32'))
-	y_train = torch.from_numpy(y_vals.to_numpy().astype('float32'))
-	train_dataset = TensorDataset(X_train, y_train)
-	training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
-	return training_data_loader
+	# y_train = torch.from_numpy(y_vals.to_numpy().astype('float32'))
+	# train_dataset = TensorDataset(X_train, y_train)
+	# training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
+	return X_train
 
 def load_testdata(processing, partialData=False, numtest=10, imagex=320, imagey=320):
 	channels = 1
@@ -266,47 +266,24 @@ def test_model(model, test_data_loader):
 	return out
 
 if __name__ == "__main__":
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 3:
         print("(model type) (criterion) (datapoint optional)")
-    model_type = sys.argv[1] # "densenet", "resnet", "inception"
-    criterion_type = sys.argv[2] # "MSE", "NLL", "CE"
-    processing = sys.argv[3] # "simple", "complex", "none"
-    if sys.argv[4] == "true":
-        weight_update = True # "true", "false"
-    else:
-        weight_update = False
+    processing = sys.argv[1] # "simple", "complex", "none"
+	classi = sys.argv[2] # 0-13
     classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
             'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
-    # groups = [['Enlarged Cardiomediastinum', 'Cardiomegaly'],
-    #         ['Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
-    #         'Pneumonia', 'Atelectasis'], ['Pneumothorax', 'Pleural Effusion',
-    #         'Pleural Other'], ['No Finding', 'Fracture', 'Support Devices']]
-    batch_size = 64
+	batch_size = 64
     imagex, imagey = 320, 320
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    if len(sys.argv) > 5:
-    	datapoints = sys.argv[5] # training datapoints
+    if len(sys.argv) > 3:
+    	datapoints = sys.argv[3] # training datapoints
     	Xdf, classesdf = load_traindata(processing, classes, partialData=True, numdata=int(datapoints), imagex=imagex, imagey=imagey)
-    	filename = "/home/kmcgraw/CS156b/predictions/ensemble/processing/"+processing+"_"+model_type+"_"+criterion_type+"_"+datapoints+"_"+weight_update+".csv"
+    	filename = "/groups/CS156b/2022/team_dirs/darthjarjar/processing_ensemble/"+processing+"/"+datapoints+"_"+classi+".pt"
     else:
     	Xdf, classesdf = load_traindata(processing, classes, imagex=imagex, imagey=imagey)
-    	filename = "/home/kmcgraw/CS156b/predictions/ensemble/processing/"+processing+"_"+model_type+"_"+criterion_type+"_"+weight_update+".csv"
-    test_data_loader, ids = load_testdata(processing)
-    out = []
-    for i in range(len(classes)):
-        if model_type == "densenet":
-            model = get_densenet(device, processing, updateWeights=weight_update)
-        elif model_type == "resnet":
-            model = get_resnet(device, processing, updateWeights=weight_update)
-        elif model_type == "inception":
-            model = get_inception(device, processing, updateWeights=weight_update)
-        else:
-            print("incorrect model type")
-        training_data_loader = get_dataLoader(Xdf, classesdf, classes[i], processing)
-        trained_model = fit_model(model, training_data_loader, device)
-        out.append(test_model(trained_model, test_data_loader))
-    outdf = pd.DataFrame(data = np.array(out).T, columns=classes)
-    outdf.insert(0, 'Id', ids)
-    outdf.to_csv(filename, index=False)
+    	filename = "/groups/CS156b/2022/team_dirs/darthjarjar/processing_ensemble/"+processing+"/"+classi+".pt"
+    X_train = get_dataLoader(Xdf, classesdf, classes[int(classi)], processing)
+	torch.save(X_train, filename)
+	# save test data in bens code

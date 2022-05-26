@@ -61,12 +61,12 @@ def preprocessing_simple(image):
 	selection[~area_closed] = 0
 	return selection
 	
-def load_traindata(processing, classes, naVal, split, fillna=True, resizex=320, resizey=320):
+def load_traindata(processing, classes, naVal, split_i, split_len, fillna=True, resizex=320, resizey=320):
     traindf = pd.read_csv("/groups/CS156b/data/student_labels/train.csv")
-    N = len(traindf.shape[0])
-    # split = [0,10]
-    beg = split * 15000
-    end = (split + 1) * 15000
+    N = traindf.shape[0]
+    # split = [0,10] if split_len = 15,000
+    beg = split_i * split_len
+    end = (split_i + 1) * split_len
     classesdf = traindf[classes].fillna(naVal).iloc[beg:end]
     paths = traindf["Path"].iloc[beg:end].tolist()  
     if processing == "simple":
@@ -102,17 +102,14 @@ def load_testdata(processing, resizex=320, resizey=320, numtest=10):
     
 	
 if __name__ == "__main__":
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 6:
         print("Invalid number of arguments")
         sys.exit()
     processing = sys.argv[1] # processing = simple, or complex
     naVal = sys.argv[2] # -1, 0, -0,5
-    # if sys.argv[3] == "partial":
-    #     partial_data = True
-    # else:
-    #     partial_data = False
-    split = int(sys.argv[3]) # [0,10]
-    if sys.argv[4] == "test_only":
+    split_i = int(sys.argv[3]) # [0,10]
+    split_len = int(sys.argv[4])
+    if sys.argv[5] == "test_only":
         test_only = True
     else:
         test_only = False
@@ -122,15 +119,15 @@ if __name__ == "__main__":
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
             'Pleural Other', 'Fracture', 'Support Devices']
             
-    filename = "/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_"+processing+"_"+naVal+"_"+sys.argv[3]+".pt"
+    filename = "/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_"+processing+"_naVal="+naVal+"_split="+sys.argv[3]+"_size="+sys.argv[4]+".pt"
     batch_size = 64
     
     device = torch.device("cuda:0")
-    if not test_onlu:
-        Xdf, classesdf = load_traindata(processing, classes, naVal, split)
+    if not test_only:
+        Xdf, classesdf = load_traindata(processing, classes, naVal, split_i, split_len)
         X_train = get_dataLoader(Xdf, classesdf, processing)
         torch.save(X_train, filename)
     else:
         X_test = load_testdata(processing)
-        filename = "/groups/CS156b/2022/team_dirs/DJJ/processed_test_data_"+processing+"_"+sys.argv[3]+".pt"
+        filename = "/groups/CS156b/2022/team_dirs/DJJ/processed_test_data_"+processing+".pt"
         torch.save(X_test, filename)

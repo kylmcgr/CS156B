@@ -1,13 +1,13 @@
 #!/bin/bash
 
-#SBATCH --job-name=inception_simple_unfrozen_tanh_-1_DarthJarJar
+#SBATCH --job-name=preprocessing_simple_naVal=0_split=11_size=15000_train_DarthJarJar
 
 #SBATCH --output=/home/bjuarez/%j.out
 #SBATCH --error=/home/bjuarez/%j.err
 
 #SBATCH -A CS156b
 
-#SBATCH -t 25:00:00
+#SBATCH -t 15:00:00
 
 #SBATCH --ntasks=1
 
@@ -27,4 +27,4 @@ module load cuda/10.2
 
 source /home/bjuarez/venv/bin/activate
 
-python /home/bjuarez/CS156b/scripts/preprocessing.py simple 0 full
+python /home/bjuarez/CS156b/scripts/preprocessing.py simple 0 11 15000 train

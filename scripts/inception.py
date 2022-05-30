@@ -167,7 +167,7 @@ def test_model(model, classes, test_data_loader, filename, ids):
     outdf.to_csv(filename, index=False)
 	
 if __name__ == "__main__":
-    if len(sys.argv) < 6:
+    if len(sys.argv) < 7:
         print("Invalid number of arguments")
         sys.exit()
     processing = sys.argv[1] # processing = noPP, simple, or complex
@@ -192,6 +192,11 @@ if __name__ == "__main__":
         partial_data = True
     else:
         partial_data = False
+    if sys.argv[6] == "use_PP_data":
+        use_PP_data = True
+    else:
+        use_PP_data = False
+    
     classes = ['No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
             'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
             'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
@@ -200,9 +205,45 @@ if __name__ == "__main__":
     batch_size = 64
     
     device = torch.device("cuda:0")
-    Xdf, classesdf = load_traindata(processing, classes, partial_data, naVal)
-    test_data_loader, ids = load_testdata(processing, partial_data)
-    model = get_model(device, processing, updateWeights, withTanh)
-    training_data_loader = get_dataLoader(Xdf, classesdf, processing, partial_data)
-    trained_model = fit_model(model, training_data_loader, device)
-    test_model(trained_model, classes, test_data_loader, filename, ids)
+    
+    if use_PP_data:
+        print("bing")
+        traindf = pd.read_csv("/groups/CS156b/data/student_labels/train.csv")
+        classesdf = traindf[classes].fillna(naVal).iloc[0:165000]
+        y_train = torch.from_numpy((classesdf).to_numpy().astype('float32'))
+        print("\nbeep")
+        t0 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=0_size=15000.pt")
+        print("\nboop")
+        t1 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=1_size=15000.pt")
+        t2 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=2_size=15000.pt")
+        t3 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=3_size=15000.pt")
+        t4 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=4_size=15000.pt")
+        t5 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=5_size=15000.pt")
+        t6 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=6_size=15000.pt")
+        t7 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=7_size=15000.pt")
+        t8 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=8_size=15000.pt")
+        t9 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=9_size=15000.pt")
+        t10 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=10_size=15000.pt")
+        X_train_PP = torch.cat((t0,t1,t2,t3,t4,t5,t6,t7,t8,t9,t10), dim=0)
+        
+        train_dataset = TensorDataset(X_train_PP, y_train)
+        training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
+        
+        testdf = pd.read_csv("/groups/CS156b/data/student_labels/test_ids.csv")
+        test_data_loader = TensorDataset(torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_test_data_simple.pt"))
+        test_data_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+        ids = testdf["Id"].tolist()
+        
+        model = get_model(device, processing, updateWeights, withTanh)
+        trained_model = fit_model(mode, training_data_loader, device)
+        filename = "/home/bjuarez/CS156b/predictions/inception_USING_SAVED_PP_DATA_" + sys.argv[2] + "_" + sys.argv[3] + "_" + sys.argv[4] + "_" + sys.argv[5] + ".csv"
+        test_model(trained_model, classes, test_data_loader, filename, ids)
+    else:
+        Xdf, classesdf = load_traindata(processing, classes, partial_data, naVal)
+        test_data_loader, ids = load_testdata(processing, partial_data)
+        model = get_model(device, processing, updateWeights, withTanh)
+        training_data_loader = get_dataLoader(Xdf, classesdf, processing, partial_data)
+        trained_model = fit_model(model, training_data_loader, device)
+        test_model(trained_model, classes, test_data_loader, filename, ids)
+    
+    

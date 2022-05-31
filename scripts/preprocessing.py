@@ -85,7 +85,7 @@ def get_dataLoader(Xdf, classesdf, processing, resizex=320, resizey=320):
     return X_train
     
 def load_testdata(processing, resizex=320, resizey=320, numtest=10):
-    testdf = pd.read_csv("/groups/CS156b/data/student_labels/test_ids.csv")
+    testdf = pd.read_csv("/groups/CS156b/data/student_labels/solution_ids.csv")
     testpaths = testdf["Path"].tolist()
     # if partial_data:
     #     testpaths = testdf["Path"].iloc[:numtest].tolist()
@@ -129,5 +129,5 @@ if __name__ == "__main__":
         torch.save(X_train, filename)
     else:
         X_test = load_testdata(processing)
-        filename = "/groups/CS156b/2022/team_dirs/DJJ/processed_test_data_"+processing+".pt"
+        filename = "/groups/CS156b/2022/team_dirs/DJJ/processed_solution_data_"+processing+".pt"
         torch.save(X_test, filename)

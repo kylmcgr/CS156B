@@ -1,17 +1,19 @@
 #!/bin/bash
 
-#SBATCH --job-name=preprocessing_simple_solution_data_DarthJarJar
+#SBATCH --job-name=B1_with_PP_DATA_t0-t7_frozen_tanh_0_DarthJarJar
 
 #SBATCH --output=/home/bjuarez/%j.out
 #SBATCH --error=/home/bjuarez/%j.err
 
 #SBATCH -A CS156b
 
-#SBATCH -t 2:00:00
+# with preprocessing (40), without preprocessing (18)
+#SBATCH -t 8:00:00
 
 #SBATCH --ntasks=1
 
-#SBATCH --cpus-per-task=1
+# with preprocessing (28 - max), without preprocessing (4)
+#SBATCH --cpus-per-task=4
 
 #SBATCH --mem=128G
 
@@ -27,4 +29,4 @@ module load cuda/10.2
 
 source /home/bjuarez/venv/bin/activate
 
-python /home/bjuarez/CS156b/scripts/preprocessing.py simple 0 0 15000 test_only
+python /home/bjuarez/CS156b/scripts/inception_with_pp.py simple frozen tanh 0 full use_PP_data

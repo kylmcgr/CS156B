@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=inception_simple_unfrozen_tanh_-1_DarthJarJar
+#SBATCH --job-name=A1_PP_DATA_t0-9_frozen_tanh_0_DarthJarJar
 
 #SBATCH --output=/home/bjuarez/%j.out
 #SBATCH --error=/home/bjuarez/%j.err
@@ -8,7 +8,7 @@
 #SBATCH -A CS156b
 
 # with preprocessing (40), without preprocessing (18)
-#SBATCH -t 18:00:00
+#SBATCH -t 12:00:00
 
 #SBATCH --ntasks=1
 
@@ -29,4 +29,4 @@ module load cuda/10.2
 
 source /home/bjuarez/venv/bin/activate
 
-python /home/bjuarez/CS156b/scripts/inception.py simple unfrozen tanh -1 full
+python /home/bjuarez/CS156b/scripts/inception.py simple frozen tanh 0 full use_PP_data

@@ -209,7 +209,7 @@ if __name__ == "__main__":
     if use_PP_data:
         #print("bing")
         traindf = pd.read_csv("/groups/CS156b/data/student_labels/train.csv")
-        classesdf = traindf[classes].fillna(naVal).iloc[0:150000]
+        classesdf = traindf[classes].fillna(naVal).iloc[0:120000]
         y_train = torch.from_numpy((classesdf).to_numpy().astype('float32')) # [:-1]
         #print("\nbeep")
         t0 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=0_size=15000.pt")
@@ -221,10 +221,10 @@ if __name__ == "__main__":
         t5 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=5_size=15000.pt")
         t6 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=6_size=15000.pt")
         t7 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=7_size=15000.pt")
-        t8 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=8_size=15000.pt")
-        t9 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=9_size=15000.pt")
+        # t8 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=8_size=15000.pt")
+        # t9 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=9_size=15000.pt")
         # t10 = torch.load("/groups/CS156b/2022/team_dirs/DJJ/processed_train_data_simple_naVal=0_split=10_size=15000.pt")
-        X_train_PP = torch.cat((t0,t1,t2,t3,t4,t5,t6,t7,t8,t9), dim=0)
+        X_train_PP = torch.cat((t0,t1,t2,t3,t4,t5,t6,t7), dim=0)
         
         train_dataset = TensorDataset(X_train_PP, y_train)
         training_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
@@ -236,7 +236,7 @@ if __name__ == "__main__":
         
         model = get_model(device, processing, updateWeights, withTanh)
         trained_model = fit_model(model, training_data_loader, device)
-        filename = "/home/bjuarez/CS156b/predictions/inception_t0-9_PP_DATA_" + sys.argv[2] + "_" + sys.argv[3] + "_" + sys.argv[4] + "_" + sys.argv[5] + ".csv"
+        filename = "/home/bjuarez/CS156b/predictions/SOL_inception_t0-7_with_PP_DATA_" + sys.argv[2] + "_" + sys.argv[3] + "_" + sys.argv[4] + "_" + sys.argv[5] + ".csv"
         test_model(trained_model, classes, test_data_loader, filename, ids)
     else:
         Xdf, classesdf = load_traindata(processing, classes, partial_data, naVal)
